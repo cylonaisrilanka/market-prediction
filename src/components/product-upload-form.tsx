@@ -20,53 +20,46 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({ setProduct
   const [isLoading, setIsLoading] = useState(false);
   const {toast} = useToast();
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageUrl(reader.result as string);
+      reader.onloadend = async () => {
+        const imgDataUrl = reader.result as string;
+        setImageUrl(imgDataUrl);
+        // Automatically generate and filter description
+        setIsLoading(true);
+        try {
+          const generatedDescription = await generateProductDescription({
+            productImageDataUri: imgDataUrl,
+            additionalDetails: 'This is a new fashion product.',
+          });
+
+          const filteredDescription = await filterProductDescription({
+            description: generatedDescription.productDescription,
+          });
+
+          setDescription(filteredDescription.filteredDescription);
+          setProductDescription(filteredDescription.filteredDescription); // Update parent component
+          toast({
+            title: 'Success',
+            description: 'Product description has been generated',
+          });
+        } catch (error: any) {
+          console.error('Error generating description:', error);
+          toast({
+            variant: 'destructive',
+            title: 'Failed to generate description',
+            description: error.message,
+          });
+        } finally {
+          setIsLoading(false);
+        }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleGenerateDescription = useCallback(async () => {
-    if (!imageUrl) {
-      toast({
-        title: 'Missing image',
-        description: 'Please upload product image to generate description.',
-      });
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const generatedDescription = await generateProductDescription({
-        productImageDataUri: imageUrl,
-        additionalDetails: 'This is a new fashion product.',
-      });
-
-      const filteredDescription = await filterProductDescription({
-        description: generatedDescription.productDescription,
-      });
-
-      setDescription(filteredDescription.filteredDescription);
-      setProductDescription(filteredDescription.filteredDescription); // Update parent component
-      toast({
-        title: 'Success',
-        description: 'Product description has been generated',
-      });
-    } catch (error: any) {
-      console.error('Error generating description:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Failed to generate description',
-        description: error.message,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [imageUrl, filterProductDescription, generateProductDescription, toast, setProductDescription]);
 
   const handleUpload = async () => {
     if (!imageUrl || !price || !description) {
@@ -146,9 +139,6 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({ setProduct
         />
       </div>
       <div className="flex justify-between mb-4">
-        <Button type="button" onClick={handleGenerateDescription} disabled={isLoading}>
-          {isLoading ? 'Generating...' : 'Generate Description'}
-        </Button>
         <Button variant="accent" type="button" onClick={handleUpload} disabled={isLoading}>
           {isLoading ? 'Analyzing Market Trend...' : 'Upload & Analyze'}
         </Button>
