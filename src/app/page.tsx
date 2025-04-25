@@ -19,15 +19,16 @@ import { Line } from 'recharts';
 export default function Home() {
   const [trendPrediction, setTrendPrediction] = useState<string | null>(null);
   const [chartData, setChartData] = useState<Array<{ name: string; sales: number }>>([]);
+	const [historicalDataInput, setHistoricalDataInput] = useState<string>('');
 
-  useEffect(() => {
-    handleTrendPrediction();
-  }, []);
 
   const handleTrendPrediction = useCallback(async () => {
-    const historicalData = 'Past 3 months: High demand, medium demand, low demand';
+    if (!historicalDataInput) {
+			console.log('Please provide historical data.');
+      return;
+    }
     try {
-      const prediction = await predictTrendRenewal({historicalData});
+      const prediction = await predictTrendRenewal({historicalData: historicalDataInput});
       setTrendPrediction(prediction.predictedTrend);
 
       // Simulate sales data generation based on prediction
@@ -39,7 +40,7 @@ export default function Home() {
       setTrendPrediction('Failed to generate trend prediction');
       setChartData([]); // Reset chart data on error
     }
-  }, [predictTrendRenewal]);
+  }, [historicalDataInput, predictTrendRenewal]);
 
   const generateSalesData = (predictedTrend: string) => {
     const baseSales = 100; // Base sales number
@@ -89,6 +90,22 @@ export default function Home() {
             <ModeToggle />
           </div>
           <ProductUploadForm />
+					<div className="mb-4">
+						<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="historicalData">
+							Historical Trend Data
+						</label>
+						<input
+							type="text"
+							id="historicalData"
+							placeholder="Enter historical data (e.g., 'Past 3 months: High, Medium, Low')"
+							className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+							value={historicalDataInput}
+							onChange={(e) => setHistoricalDataInput(e.target.value)}
+						/>
+					</div>
+					<Button type="button" onClick={handleTrendPrediction}>
+						Predict Market Trend
+					</Button>
 
           <Card className="mt-4">
             <CardHeader>
