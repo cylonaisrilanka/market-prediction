@@ -7,14 +7,8 @@ import {Button} from '@/components/ui/button';
 import {ModeToggle} from '@/components/mode-toggle';
 import {predictTrendRenewal} from '@/ai/flows/predict-trend-renewal';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-
-import { Line } from 'recharts';
 
 export default function Home() {
   const [trendPrediction, setTrendPrediction] = useState<string | null>(null);
@@ -65,13 +59,6 @@ export default function Home() {
     return simulatedData;
   };
 
-
-  const chartConfig = {
-    sales: {
-      label: "Sales",
-      color: "var(--primary)",
-    },
-  }
 
   return (
     <SidebarProvider>
@@ -126,12 +113,16 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               {chartData.length > 0 ? (
-                <ChartContainer config={chartConfig} className="h-[300px]">
-                  <Line dataKey="sales" stroke="var(--chart-1)" type="monotone" />
-                  <ChartTooltip>
-                    <ChartTooltipContent/>
-                  </ChartTooltip>
-                </ChartContainer>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="sales" stroke="#8884d8" activeDot={{ r: 8 }} />
+                  </LineChart>
+                </ResponsiveContainer>
                 ) : (
                   <p>No sales data to display.</p>
                 )}
