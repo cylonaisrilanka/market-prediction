@@ -1,12 +1,22 @@
 'use client';
 
-import {useState} from 'react';
+import {useState, useEffect, useCallback} from 'react';
 import {ProductUploadForm} from '@/components/product-upload-form';
 import {ProductList} from '@/components/product-list';
 import {SidebarProvider, Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton} from '@/components/ui/sidebar';
 import {Button} from '@/components/ui/button';
 import {ModeToggle} from '@/components/mode-toggle';
-import {useEffect} from 'react';
+import {predictTrendRenewal} from '@/ai/flows/predict-trend-renewal';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+
+import {
+  ChartContent,
+  ChartLegend,
+  ChartLine,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([
@@ -21,6 +31,8 @@ export default function Home() {
       description: 'Nice Jeans',
     },
   ]);
+
+  const [trendPrediction, setTrendPrediction] = useState<string | null>(null);
 
   useEffect(() => {
     // Persist state to local storage
@@ -38,6 +50,37 @@ export default function Home() {
   const addProduct = (newProduct: Product) => {
     setProducts([...products, newProduct]);
   };
+
+  const handleTrendPrediction = useCallback(async () => {
+    const historicalData = 'Past 3 months: High demand, medium demand, low demand';
+    try {
+      const prediction = await predictTrendRenewal({historicalData});
+      setTrendPrediction(prediction.predictedTrend);
+    } catch (error: any) {
+      console.error('Error generating trend prediction:', error);
+      setTrendPrediction('Failed to generate trend prediction');
+    }
+  }, [predictTrendRenewal]);
+
+  useEffect(() => {
+    handleTrendPrediction();
+  }, [handleTrendPrediction]);
+
+  // Dummy data for chart
+  const chartData = [
+    { name: 'Jan', sales: 200 },
+    { name: 'Feb', sales: 300 },
+    { name: 'Mar', sales: 400 },
+    { name: 'Apr', sales: 300 },
+    { name: 'May', sales: 200 },
+  ];
+
+  const chartConfig = {
+    sales: {
+      label: "Sales",
+      color: "var(--primary)",
+    },
+  }
 
   return (
     <SidebarProvider>
@@ -57,6 +100,35 @@ export default function Home() {
           </div>
           <ProductUploadForm onProductUpload={addProduct} />
           <ProductList products={products} />
+
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Trend Prediction</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {trendPrediction ? (
+                <p>{trendPrediction}</p>
+              ) : (
+                <p>Loading trend prediction...</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Sales Chart</CardTitle>
+            </CardHeader>
+            <CardContent>
+            <ChartContainer config={chartConfig} className="h-[300px]">
+                  <ChartContent data={chartData}>
+                    <ChartLine dataKey="sales" stroke="var(--chart-1)" />
+                    <ChartTooltip>
+                      <ChartTooltipContent/>
+                    </ChartTooltip>
+                  </ChartContent>
+                </ChartContainer>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </SidebarProvider>
@@ -68,3 +140,4 @@ export interface Product {
   price: number;
   description: string;
 }
+
