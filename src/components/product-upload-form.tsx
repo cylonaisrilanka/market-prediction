@@ -17,6 +17,9 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({ setProduct
   const [imageUrl, setImageUrl] = useState('');
   const [price, setPrice] = useState<number | undefined>(undefined);
   const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
+  const [ageSuitability, setAgeSuitability] = useState('');
+  const [gender, setGender] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const {toast} = useToast();
 
@@ -32,7 +35,7 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({ setProduct
         try {
           const generatedDescription = await generateProductDescription({
             productImageDataUri: imgDataUrl,
-            additionalDetails: 'This is a new fashion product.',
+            additionalDetails: `Location: ${location}, Age Suitability: ${ageSuitability}, Gender: ${gender}. This is a new fashion product.`,
           });
 
           const filteredDescription = await filterProductDescription({
@@ -62,7 +65,7 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({ setProduct
 
 
   const handleUpload = async () => {
-    if (!imageUrl || !price || !description) {
+    if (!imageUrl || !price || !description || !location || !ageSuitability || !gender) {
       toast({
         variant: 'destructive',
         title: 'Missing fields',
@@ -78,6 +81,9 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({ setProduct
         setImageUrl('');
         setPrice(undefined);
         setDescription('');
+        setLocation('');
+        setAgeSuitability('');
+        setGender('');
         setProductDescription('');
         toast({
           title: 'Product Uploaded',
@@ -136,6 +142,42 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({ setProduct
             setDescription(e.target.value);
             setProductDescription(e.target.value); // Also update product description here
           }}
+        />
+      </div>
+       <div className="mb-4">
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="location">
+          Location
+        </label>
+        <Input
+          type="text"
+          id="location"
+          placeholder="Enter location"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="ageSuitability">
+          Age Suitability
+        </label>
+        <Input
+          type="text"
+          id="ageSuitability"
+          placeholder="Enter age suitability"
+          value={ageSuitability}
+          onChange={(e) => setAgeSuitability(e.target.value)}
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="gender">
+          Gender
+        </label>
+        <Input
+          type="text"
+          id="gender"
+          placeholder="Enter gender"
+          value={gender}
+          onChange={(e) => setGender(e.target.value)}
         />
       </div>
       <div className="flex justify-between mb-4">
