@@ -10,10 +10,8 @@ import {predictTrendRenewal} from '@/ai/flows/predict-trend-renewal';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 
 import {
-  ChartContent,
-  ChartLegend,
-  ChartLine,
   ChartContainer,
+  ChartLine,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
@@ -120,12 +118,10 @@ export default function Home() {
             </CardHeader>
             <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px]">
-                  <ChartContent data={chartData}>
-                    <ChartLine dataKey="sales" stroke="var(--chart-1)" />
-                    <ChartTooltip>
-                      <ChartTooltipContent/>
-                    </ChartTooltip>
-                  </ChartContent>
+                  <ChartLine dataKey="sales" stroke="var(--chart-1)" />
+                  <ChartTooltip>
+                    <ChartTooltipContent/>
+                  </ChartTooltip>
                 </ChartContainer>
             </CardContent>
           </Card>
