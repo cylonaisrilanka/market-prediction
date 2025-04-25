@@ -11,10 +11,11 @@ import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 
 import {
   ChartContainer,
-  ChartLine,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+
+import { Line } from 'recharts';
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([
@@ -118,7 +119,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px]">
-                  <ChartLine dataKey="sales" stroke="var(--chart-1)" />
+                  <Line dataKey="sales" stroke="var(--chart-1)" />
                   <ChartTooltip>
                     <ChartTooltipContent/>
                   </ChartTooltip>
@@ -136,4 +137,3 @@ export interface Product {
   price: number;
   description: string;
 }
-
