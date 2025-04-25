@@ -11,9 +11,10 @@ import {useToast} from '@/hooks/use-toast';
 
 interface ProductUploadFormProps {
   setProductDescription: (description: string) => void;
+  onUploadComplete: () => void;
 }
 
-export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({ setProductDescription }) => {
+export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({ setProductDescription, onUploadComplete }) => {
   const [imageUrl, setImageUrl] = useState('');
   const [price, setPrice] = useState<number | undefined>(undefined);
   const [description, setDescription] = useState('');
@@ -89,6 +90,8 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({ setProduct
           title: 'Product Uploaded',
           description: 'Product has been uploaded successfully.',
         });
+
+        onUploadComplete(); // Trigger trend prediction after upload
       } else {
         toast({
           variant: 'destructive',

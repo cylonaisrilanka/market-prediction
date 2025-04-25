@@ -28,7 +28,7 @@ export default function Home() {
       setTrendAnalysis(predictionResult.trendAnalysis);
 
       // Simulate sales data generation based on prediction
-      const salesData = generateSalesData(predictionResult.predictedTrend);
+      const salesData = generateSalesData(predictionResult.trendAnalysis);
       setChartData(salesData);
 
     } catch (error: any) {
@@ -39,27 +39,35 @@ export default function Home() {
     }
   }, [productDescription, predictTrendRenewal]);
 
-  const generateSalesData = (predictedTrend: string) => {
+  const generateSalesData = (trendAnalysis: string) => {
     const baseSales = 100; // Base sales number
-    const trendModifier = {
-      'High Demand': 2,
-      'Medium Demand': 1.5,
-      'Low Demand': 0.8,
-      'Failed to generate trend prediction': 0.5,
-      'Loading trend prediction...': 0.7,
-    };
+    const today = new Date();
+    const modifier = calculateModifier(trendAnalysis);
 
-    const modifier = trendModifier[predictedTrend as keyof typeof trendModifier] || 1;
-
-    const simulatedData = [
-      { name: 'Month 1', sales: Math.round(baseSales * modifier) },
-      { name: 'Month 2', sales: Math.round(baseSales * (modifier + 0.2)) },
-      { name: 'Month 3', sales: Math.round(baseSales * (modifier - 0.1)) },
-      { name: 'Month 4', sales: Math.round(baseSales * (modifier + 0.3)) },
-      { name: 'Month 5', sales: Math.round(baseSales * (modifier - 0.2)) },
-    ];
+    const simulatedData = [];
+    for (let i = 0; i < 5; i++) {
+      const nextMonth = new Date(today.getFullYear(), today.getMonth() + i, today.getDate());
+      const monthName = nextMonth.toLocaleString('default', { month: 'short' });
+      const sales = Math.round(baseSales * (modifier + (Math.random() * 0.4 - 0.2))); // Add some randomness
+      simulatedData.push({ name: `Month ${i + 1} (${monthName})`, sales });
+    }
 
     return simulatedData;
+  };
+
+  const calculateModifier = (trendAnalysis: string) => {
+      // Use keywords from the trend analysis to adjust the sales modifier
+      let modifier = 1; // Default modifier
+
+      if (trendAnalysis.toLowerCase().includes("high demand") || trendAnalysis.toLowerCase().includes("popular")) {
+          modifier += 0.5;
+      } else if (trendAnalysis.toLowerCase().includes("niche") || trendAnalysis.toLowerCase().includes("emerging")) {
+          modifier += 0.3;
+      } else if (trendAnalysis.toLowerCase().includes("decline") || trendAnalysis.toLowerCase().includes("saturated")) {
+          modifier -= 0.2;
+      }
+
+      return modifier;
   };
 
 
@@ -79,23 +87,7 @@ export default function Home() {
           <div className="flex justify-end">
             <ModeToggle />
           </div>
-          <ProductUploadForm setProductDescription={setProductDescription}/>
-					<div className="mb-4">
-						<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="productDescription">
-							Product Description
-						</label>
-						<input
-							type="text"
-							id="productDescription"
-							placeholder="Enter product description"
-							className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-							value={productDescription}
-							onChange={(e) => setProductDescription(e.target.value)}
-						/>
-					</div>
-					<Button type="button" onClick={handleTrendPrediction}>
-						Predict Market Trend
-					</Button>
+          <ProductUploadForm setProductDescription={setProductDescription} onUploadComplete={handleTrendPrediction}/>
 
           <Card className="mt-4">
             <CardHeader>
