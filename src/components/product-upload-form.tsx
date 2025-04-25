@@ -9,7 +9,11 @@ import {filterProductDescription} from '@/ai/flows/filter-product-description';
 import {uploadProduct} from '@/services/product-upload';
 import {useToast} from '@/hooks/use-toast';
 
-export const ProductUploadForm = () => {
+interface ProductUploadFormProps {
+  setProductDescription: (description: string) => void;
+}
+
+export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({ setProductDescription }) => {
   const [imageUrl, setImageUrl] = useState('');
   const [price, setPrice] = useState<number | undefined>(undefined);
   const [description, setDescription] = useState('');
@@ -47,6 +51,7 @@ export const ProductUploadForm = () => {
       });
 
       setDescription(filteredDescription.filteredDescription);
+      setProductDescription(filteredDescription.filteredDescription); // Update parent component
       toast({
         title: 'Success',
         description: 'Product description has been generated',
@@ -61,7 +66,7 @@ export const ProductUploadForm = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [imageUrl, filterProductDescription, generateProductDescription, toast]);
+  }, [imageUrl, filterProductDescription, generateProductDescription, toast, setProductDescription]);
 
   const handleUpload = async () => {
     if (!imageUrl || !price || !description) {
@@ -80,6 +85,7 @@ export const ProductUploadForm = () => {
         setImageUrl('');
         setPrice(undefined);
         setDescription('');
+        setProductDescription('');
         toast({
           title: 'Product Uploaded',
           description: 'Product has been uploaded successfully.',
@@ -133,7 +139,10 @@ export const ProductUploadForm = () => {
           id="description"
           placeholder="Enter description"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            setProductDescription(e.target.value); // Also update product description here
+          }}
         />
       </div>
       <div className="flex justify-between mb-4">

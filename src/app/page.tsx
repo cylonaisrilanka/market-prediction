@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect, useCallback} from 'react';
+import {useState, useCallback} from 'react';
 import {ProductUploadForm} from '@/components/product-upload-form';
 import {SidebarProvider, Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton} from '@/components/ui/sidebar';
 import {Button} from '@/components/ui/button';
@@ -13,28 +13,31 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 export default function Home() {
   const [trendPrediction, setTrendPrediction] = useState<string | null>(null);
   const [chartData, setChartData] = useState<Array<{ name: string; sales: number }>>([]);
-	const [historicalDataInput, setHistoricalDataInput] = useState<string>('');
+	const [productDescription, setProductDescription] = useState<string>('');
+  const [trendAnalysis, setTrendAnalysis] = useState<string | null>(null);
 
 
   const handleTrendPrediction = useCallback(async () => {
-    if (!historicalDataInput) {
-			console.log('Please provide historical data.');
+    if (!productDescription) {
+			console.log('Please provide a product description.');
       return;
     }
     try {
-      const prediction = await predictTrendRenewal({historicalData: historicalDataInput});
-      setTrendPrediction(prediction.predictedTrend);
+      const predictionResult = await predictTrendRenewal({ productDescription: productDescription });
+      setTrendPrediction(predictionResult.predictedTrend);
+      setTrendAnalysis(predictionResult.trendAnalysis);
 
       // Simulate sales data generation based on prediction
-      const salesData = generateSalesData(prediction.predictedTrend);
+      const salesData = generateSalesData(predictionResult.predictedTrend);
       setChartData(salesData);
 
     } catch (error: any) {
       console.error('Error generating trend prediction:', error);
       setTrendPrediction('Failed to generate trend prediction');
+      setTrendAnalysis('Failed to generate trend analysis.');
       setChartData([]); // Reset chart data on error
     }
-  }, [historicalDataInput, predictTrendRenewal]);
+  }, [productDescription, predictTrendRenewal]);
 
   const generateSalesData = (predictedTrend: string) => {
     const baseSales = 100; // Base sales number
@@ -76,18 +79,18 @@ export default function Home() {
           <div className="flex justify-end">
             <ModeToggle />
           </div>
-          <ProductUploadForm />
+          <ProductUploadForm setProductDescription={setProductDescription}/>
 					<div className="mb-4">
-						<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="historicalData">
-							Historical Trend Data
+						<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="productDescription">
+							Product Description
 						</label>
 						<input
 							type="text"
-							id="historicalData"
-							placeholder="Enter historical data (e.g., 'Past 3 months: High, Medium, Low')"
+							id="productDescription"
+							placeholder="Enter product description"
 							className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-							value={historicalDataInput}
-							onChange={(e) => setHistoricalDataInput(e.target.value)}
+							value={productDescription}
+							onChange={(e) => setProductDescription(e.target.value)}
 						/>
 					</div>
 					<Button type="button" onClick={handleTrendPrediction}>
@@ -106,6 +109,17 @@ export default function Home() {
               )}
             </CardContent>
           </Card>
+
+          {trendAnalysis && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle>Trend Analysis</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{trendAnalysis}</p>
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="mt-4">
             <CardHeader>
