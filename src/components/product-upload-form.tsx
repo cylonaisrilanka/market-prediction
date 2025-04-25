@@ -6,15 +6,10 @@ import {Input} from '@/components/ui/input';
 import {Textarea} from '@/components/ui/textarea';
 import {generateProductDescription} from '@/ai/flows/generate-product-description';
 import {filterProductDescription} from '@/ai/flows/filter-product-description';
-import {Product} from '@/app/page';
 import {uploadProduct} from '@/services/product-upload';
 import {useToast} from '@/hooks/use-toast';
 
-interface ProductUploadFormProps {
-  onProductUpload: (product: Product) => void;
-}
-
-export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({onProductUpload}) => {
+export const ProductUploadForm = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [price, setPrice] = useState<number | undefined>(undefined);
   const [description, setDescription] = useState('');
@@ -79,10 +74,9 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({onProductUp
     }
     setIsLoading(true);
     try {
-      const product: Product = {imageUrl, price, description};
+      const product = {imageUrl, price, description};
       const success = await uploadProduct(product);
       if (success) {
-        onProductUpload(product);
         setImageUrl('');
         setPrice(undefined);
         setDescription('');
@@ -111,22 +105,22 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({onProductUp
 
   return (
     <div className="max-w-md mx-auto mt-8">
-      <h2 className="text-2xl font-semibold mb-4">Upload New Product</h2>
+      <h2 className="text-2xl font-semibold mb-4">Upload New Fashion Design</h2>
       <div className="mb-4">
         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="image">
-          Product Image
+          Fashion Design Image
         </label>
         <Input type="file" id="image" accept="image/*" onChange={handleImageUpload} />
-        {imageUrl && <img src={imageUrl} alt="Product Preview" className="mt-2 w-32 h-32 object-cover rounded-md" />}
+        {imageUrl && <img src={imageUrl} alt="Fashion Design Preview" className="mt-2 w-32 h-32 object-cover rounded-md" />}
       </div>
       <div className="mb-4">
         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="price">
-          Price
+          Price (LKR)
         </label>
         <Input
           type="number"
           id="price"
-          placeholder="Enter price"
+          placeholder="Enter price in LKR"
           value={price === undefined ? '' : price.toString()}
           onChange={(e) => setPrice(Number(e.target.value))}
         />
@@ -147,7 +141,7 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({onProductUp
           {isLoading ? 'Generating...' : 'Generate Description'}
         </Button>
         <Button variant="accent" type="button" onClick={handleUpload} disabled={isLoading}>
-          {isLoading ? 'Uploading...' : 'Upload Product'}
+          {isLoading ? 'Analyzing Market Trend...' : 'Upload & Analyze'}
         </Button>
       </div>
     </div>

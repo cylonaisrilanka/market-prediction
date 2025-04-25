@@ -2,7 +2,6 @@
 
 import {useState, useEffect, useCallback} from 'react';
 import {ProductUploadForm} from '@/components/product-upload-form';
-import {ProductList} from '@/components/product-list';
 import {SidebarProvider, Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton} from '@/components/ui/sidebar';
 import {Button} from '@/components/ui/button';
 import {ModeToggle} from '@/components/mode-toggle';
@@ -18,61 +17,53 @@ import {
 import { Line } from 'recharts';
 
 export default function Home() {
-  const [products, setProducts] = useState<Product[]>([
-    {
-      imageUrl: 'https://picsum.photos/200/300',
-      price: 250,
-      description: 'A beautiful summer dress',
-    },
-    {
-      imageUrl: 'https://picsum.photos/200/300',
-      price: 100,
-      description: 'Nice Jeans',
-    },
-  ]);
-
   const [trendPrediction, setTrendPrediction] = useState<string | null>(null);
+  const [chartData, setChartData] = useState<Array<{ name: string; sales: number }>>([]);
 
   useEffect(() => {
-    // Persist state to local storage
-    localStorage.setItem('products', JSON.stringify(products));
-  }, [products]);
-
-  useEffect(() => {
-    // Load state from local storage on initial render
-    const storedProducts = localStorage.getItem('products');
-    if (storedProducts) {
-      setProducts(JSON.parse(storedProducts));
-    }
+    handleTrendPrediction();
   }, []);
-
-  const addProduct = (newProduct: Product) => {
-    setProducts([...products, newProduct]);
-  };
 
   const handleTrendPrediction = useCallback(async () => {
     const historicalData = 'Past 3 months: High demand, medium demand, low demand';
     try {
       const prediction = await predictTrendRenewal({historicalData});
       setTrendPrediction(prediction.predictedTrend);
+
+      // Simulate sales data generation based on prediction
+      const salesData = generateSalesData(prediction.predictedTrend);
+      setChartData(salesData);
+
     } catch (error: any) {
       console.error('Error generating trend prediction:', error);
       setTrendPrediction('Failed to generate trend prediction');
+      setChartData([]); // Reset chart data on error
     }
   }, [predictTrendRenewal]);
 
-  useEffect(() => {
-    handleTrendPrediction();
-  }, [handleTrendPrediction]);
+  const generateSalesData = (predictedTrend: string) => {
+    const baseSales = 100; // Base sales number
+    const trendModifier = {
+      'High Demand': 2,
+      'Medium Demand': 1.5,
+      'Low Demand': 0.8,
+      'Failed to generate trend prediction': 0.5,
+      'Loading trend prediction...': 0.7,
+    };
 
-  // Dummy data for chart
-  const chartData = [
-    { name: 'Jan', sales: 200 },
-    { name: 'Feb', sales: 300 },
-    { name: 'Mar', sales: 400 },
-    { name: 'Apr', sales: 300 },
-    { name: 'May', sales: 200 },
-  ];
+    const modifier = trendModifier[predictedTrend as keyof typeof trendModifier] || 1;
+
+    const simulatedData = [
+      { name: 'Month 1', sales: Math.round(baseSales * modifier) },
+      { name: 'Month 2', sales: Math.round(baseSales * (modifier + 0.2)) },
+      { name: 'Month 3', sales: Math.round(baseSales * (modifier - 0.1)) },
+      { name: 'Month 4', sales: Math.round(baseSales * (modifier + 0.3)) },
+      { name: 'Month 5', sales: Math.round(baseSales * (modifier - 0.2)) },
+    ];
+
+    return simulatedData;
+  };
+
 
   const chartConfig = {
     sales: {
@@ -88,7 +79,7 @@ export default function Home() {
           <SidebarContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton>Upload Product</SidebarMenuButton>
+                <SidebarMenuButton>Upload Fashion</SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarContent>
@@ -97,8 +88,7 @@ export default function Home() {
           <div className="flex justify-end">
             <ModeToggle />
           </div>
-          <ProductUploadForm onProductUpload={addProduct} />
-          <ProductList products={products} />
+          <ProductUploadForm />
 
           <Card className="mt-4">
             <CardHeader>
@@ -118,22 +108,20 @@ export default function Home() {
               <CardTitle>Sales Chart</CardTitle>
             </CardHeader>
             <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
-                  <Line dataKey="sales" stroke="var(--chart-1)" />
+              {chartData.length > 0 ? (
+                <ChartContainer config={chartConfig} className="h-[300px]">
+                  <Line dataKey="sales" stroke="var(--chart-1)" type="monotone" />
                   <ChartTooltip>
                     <ChartTooltipContent/>
                   </ChartTooltip>
                 </ChartContainer>
+                ) : (
+                  <p>No sales data to display.</p>
+                )}
             </CardContent>
           </Card>
         </div>
       </div>
     </SidebarProvider>
   );
-}
-
-export interface Product {
-  imageUrl: string;
-  price: number;
-  description: string;
 }

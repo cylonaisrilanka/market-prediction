@@ -25,6 +25,9 @@ export interface Product {
 export async function uploadProduct(product: Product): Promise<boolean> {
   // TODO: Implement this by calling an external API.
 
+  product.price = product.price; // LKR currency
+
   console.log('Simulating product upload:', product);
   return true;
 }
+
