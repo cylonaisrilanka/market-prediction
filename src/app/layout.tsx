@@ -1,20 +1,18 @@
 import type {Metadata} from 'next';
-import {Geist, Geist_Mono} from 'next/font/google';
+import { Geist } from 'next/font/google'; // Removed Geist_Mono as it's not used
 import './globals.css';
+import { ThemeProvider } from 'next-themes'; // Import ThemeProvider
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
+// Removed geistMono as it's not used
 
 export const metadata: Metadata = {
-  title: 'FashionFlow',
-  description: 'Discover the latest fashion designs.',
+  title: 'FashionFlow AI', // Updated title for consistency
+  description: 'Predict the market trends for your fashion designs using AI.', // Updated description
 };
 
 export default function RootLayout({
@@ -23,9 +21,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
+    <html lang="en" suppressHydrationWarning> {/* Add suppressHydrationWarning for next-themes */}
+      <body className={`${geistSans.variable} antialiased`}> {/* Removed geistMono variable */}
+         <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+        </ThemeProvider>
       </body>
     </html>
   );
