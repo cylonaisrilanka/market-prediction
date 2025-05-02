@@ -1,192 +1,261 @@
 'use client';
 
-import {useState, useCallback} from 'react';
+import {useState, useCallback, useRef} from 'react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Textarea} from '@/components/ui/textarea';
+import {Label} from '@/components/ui/label'; // Import Label
 import {generateProductDescription} from '@/ai/flows/generate-product-description';
 import {filterProductDescription} from '@/ai/flows/filter-product-description';
-import {uploadProduct} from '@/services/product-upload';
 import {useToast} from '@/hooks/use-toast';
+import Image from 'next/image'; // Use next/image for optimization
 
 interface ProductUploadFormProps {
   setProductDescription: (description: string) => void;
-  onUploadComplete: () => void;
+  setLocation: (location: string) => void;
+  setAgeSuitability: (ageSuitability: string) => void;
+  setGender: (gender: string) => void;
+  isPredicting: boolean; // Receive predicting state
 }
 
-export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({ setProductDescription, onUploadComplete }) => {
+export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({
+  setProductDescription,
+  setLocation,
+  setAgeSuitability,
+  setGender,
+  isPredicting,
+}) => {
   const [imageUrl, setImageUrl] = useState('');
-  const [price, setPrice] = useState<number | undefined>(undefined);
+  const [price, setPrice] = useState<number | ''>(''); // Allow empty string for initial state
   const [description, setDescription] = useState('');
-  const [location, setLocation] = useState('');
-  const [ageSuitability, setAgeSuitability] = useState('');
-  const [gender, setGender] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [localLocation, setLocalLocation] = useState('');
+  const [localAgeSuitability, setLocalAgeSuitability] = useState('');
+  const [localGender, setLocalGender] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false); // Separate state for description generation
   const {toast} = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null); // Ref for file input
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Basic validation for file type and size (optional but recommended)
+      if (!file.type.startsWith('image/')) {
+        toast({
+          variant: 'destructive',
+          title: 'Invalid File Type',
+          description: 'Please upload an image file.',
+        });
+        return;
+      }
+      // Example size limit (e.g., 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+          toast({
+            variant: 'destructive',
+            title: 'File Too Large',
+            description: 'Please upload an image smaller than 5MB.',
+          });
+          return;
+      }
+
+
       const reader = new FileReader();
       reader.onloadend = async () => {
         const imgDataUrl = reader.result as string;
         setImageUrl(imgDataUrl);
-        // Automatically generate and filter description
-        setIsLoading(true);
-        try {
-          const generatedDescription = await generateProductDescription({
-            productImageDataUri: imgDataUrl,
-            additionalDetails: `Location: ${location}, Age Suitability: ${ageSuitability}, Gender: ${gender}. This is a new fashion product.`,
-          });
-
-          const filteredDescription = await filterProductDescription({
-            description: generatedDescription.productDescription,
-          });
-
-          setDescription(filteredDescription.filteredDescription);
-          setProductDescription(filteredDescription.filteredDescription); // Update parent component
-          toast({
-            title: 'Success',
-            description: 'Product description has been generated',
-          });
-        } catch (error: any) {
-          console.error('Error generating description:', error);
-          toast({
-            variant: 'destructive',
-            title: 'Failed to generate description',
-            description: error.message,
-          });
-        } finally {
-          setIsLoading(false);
-        }
+        // Automatically generate description after image is loaded
+        await generateAndFilterDescription(imgDataUrl);
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const generateAndFilterDescription = async (imageDataUri: string) => {
+     // Don't generate if already generating or predicting
+    if (isGenerating || isPredicting) return;
 
-  const handleUpload = async () => {
-    if (!imageUrl || !price || !description || !location || !ageSuitability || !gender) {
-      toast({
-        variant: 'destructive',
-        title: 'Missing fields',
-        description: 'Please fill in all fields.',
-      });
-      return;
-    }
-    setIsLoading(true);
+    setIsGenerating(true);
+    setDescription('Generating description...'); // Indicate loading
+    setProductDescription(''); // Clear parent state while generating
+
+    // Use local state for details if available, otherwise use placeholders or empty strings
+    const details = `Location: ${localLocation || 'Not specified'}, Age Suitability: ${localAgeSuitability || 'Not specified'}, Gender: ${localGender || 'Not specified'}. This is a new fashion product.`;
+
     try {
-      const product = {imageUrl, price, description};
-      const success = await uploadProduct(product);
-      if (success) {
-        setImageUrl('');
-        setPrice(undefined);
-        setDescription('');
-        setLocation('');
-        setAgeSuitability('');
-        setGender('');
-        setProductDescription('');
-        toast({
-          title: 'Product Uploaded',
-          description: 'Product has been uploaded successfully.',
-        });
+      const genResult = await generateProductDescription({
+        productImageDataUri: imageDataUri,
+        additionalDetails: details,
+      });
 
-        onUploadComplete(); // Trigger trend prediction after upload
+      // Filter the generated description
+      const filterResult = await filterProductDescription({
+        description: genResult.productDescription,
+      });
+
+      setDescription(filterResult.filteredDescription);
+      setProductDescription(filterResult.filteredDescription); // Update parent only after filtering
+
+      if (!filterResult.isSafe) {
+           toast({
+            variant: "destructive",
+            title: 'Content Warning',
+            description: 'Generated description contained potentially inappropriate content and was filtered.',
+          });
       } else {
-        toast({
-          variant: 'destructive',
-          title: 'Upload Failed',
-          description: 'Failed to upload the product. Please try again.',
-        });
+           toast({
+            title: 'Description Generated',
+            description: 'Product description is ready.',
+          });
       }
+
     } catch (error: any) {
-      console.error('Upload error:', error);
+      console.error('Error generating/filtering description:', error);
+      setDescription(''); // Clear description on error
+      setProductDescription('');
       toast({
         variant: 'destructive',
-        title: 'Upload Failed',
-        description: error.message,
+        title: 'Generation Failed',
+        description: 'Could not generate product description. Please try again or enter manually.',
       });
     } finally {
-      setIsLoading(false);
+      setIsGenerating(false);
     }
   };
 
+
+  // Update parent state when local state changes
+  const handleAttributeChange = <T extends (value: string) => void>(setter: T, value: string) => {
+      setter(value); // Update parent state immediately
+  };
+
+
   return (
-    <div className="max-w-md mx-auto mt-8">
-      <h2 className="text-2xl font-semibold mb-4">Upload New Fashion Design</h2>
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="image">
-          Fashion Design Image
-        </label>
-        <Input type="file" id="image" accept="image/*" onChange={handleImageUpload} />
-        {imageUrl && <img src={imageUrl} alt="Fashion Design Preview" className="mt-2 w-32 h-32 object-cover rounded-md" />}
-      </div>
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="price">
-          Price (LKR)
-        </label>
-        <Input
-          type="number"
-          id="price"
-          placeholder="Enter price in LKR"
-          value={price === undefined ? '' : price.toString()}
-          onChange={(e) => setPrice(Number(e.target.value))}
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
-          Description
-        </label>
-        <Textarea
-          id="description"
-          placeholder="Enter description"
-          value={description}
-          onChange={(e) => {
-            setDescription(e.target.value);
-            setProductDescription(e.target.value); // Also update product description here
-          }}
-        />
-      </div>
-       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="location">
-          Location
-        </label>
-        <Input
-          type="text"
-          id="location"
-          placeholder="Enter location"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="ageSuitability">
-          Age Suitability
-        </label>
-        <Input
-          type="text"
-          id="ageSuitability"
-          placeholder="Enter age suitability"
-          value={ageSuitability}
-          onChange={(e) => setAgeSuitability(e.target.value)}
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="gender">
-          Gender
-        </label>
-        <Input
-          type="text"
-          id="gender"
-          placeholder="Enter gender"
-          value={gender}
-          onChange={(e) => setGender(e.target.value)}
-        />
-      </div>
-      <div className="flex justify-between mb-4">
-        <Button variant="accent" type="button" onClick={handleUpload} disabled={isLoading}>
-          {isLoading ? 'Analyzing Market Trend...' : 'Upload & Analyze'}
-        </Button>
+    <div className="w-full max-w-lg mx-auto mt-8 p-4 sm:p-6 border rounded-lg shadow-md bg-card text-card-foreground">
+      <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-center">Upload New Fashion Design</h2>
+      <div className="space-y-4">
+        {/* Image Upload */}
+        <div>
+          <Label htmlFor="image" className="block text-sm font-medium mb-1">
+            Fashion Design Image
+          </Label>
+          <Input
+            type="file"
+            id="image"
+            accept="image/*"
+            onChange={handleImageUpload}
+            ref={fileInputRef}
+            className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+            disabled={isGenerating || isPredicting}
+          />
+          {imageUrl && (
+             <div className="mt-3 flex justify-center">
+                <Image
+                    src={imageUrl}
+                    alt="Fashion Design Preview"
+                    width={128} // Provide width
+                    height={128} // Provide height
+                    className="w-32 h-32 object-cover rounded-md border"
+                    data-ai-hint="fashion clothing preview"
+                />
+             </div>
+          )}
+        </div>
+
+        {/* Price */}
+        <div>
+          <Label htmlFor="price" className="block text-sm font-medium mb-1">
+            Price (LKR)
+          </Label>
+          <Input
+            type="number"
+            id="price"
+            placeholder="Enter price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value === '' ? '' : Number(e.target.value))}
+            className="w-full"
+            disabled={isGenerating || isPredicting}
+            min="0" // Prevent negative prices
+          />
+        </div>
+
+        {/* Location */}
+        <div>
+          <Label htmlFor="location" className="block text-sm font-medium mb-1">
+            Target Location
+          </Label>
+          <Input
+            type="text"
+            id="location"
+            placeholder="e.g., Colombo, Urban, Sri Lanka"
+            value={localLocation}
+            onChange={(e) => {
+                setLocalLocation(e.target.value);
+                handleAttributeChange(setLocation, e.target.value);
+             }}
+            className="w-full"
+            disabled={isGenerating || isPredicting}
+          />
+        </div>
+
+        {/* Age Suitability */}
+        <div>
+          <Label htmlFor="ageSuitability" className="block text-sm font-medium mb-1">
+            Target Age Group
+          </Label>
+          <Input
+            type="text"
+            id="ageSuitability"
+            placeholder="e.g., Young Adult, 25-35, Teenager"
+            value={localAgeSuitability}
+             onChange={(e) => {
+                setLocalAgeSuitability(e.target.value);
+                handleAttributeChange(setAgeSuitability, e.target.value);
+             }}
+            className="w-full"
+            disabled={isGenerating || isPredicting}
+          />
+        </div>
+
+        {/* Gender */}
+        <div>
+          <Label htmlFor="gender" className="block text-sm font-medium mb-1">
+            Target Gender
+          </Label>
+          <Input
+            type="text"
+            id="gender"
+            placeholder="e.g., Women, Men, Unisex"
+            value={localGender}
+             onChange={(e) => {
+                setLocalGender(e.target.value);
+                handleAttributeChange(setGender, e.target.value);
+             }}
+            className="w-full"
+            disabled={isGenerating || isPredicting}
+          />
+        </div>
+
+         {/* Description */}
+        <div>
+          <Label htmlFor="description" className="block text-sm font-medium mb-1">
+            Product Description
+          </Label>
+          <Textarea
+            id="description"
+            placeholder={isGenerating ? "Generating..." : "Product description will appear here..."}
+            value={description}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              setProductDescription(e.target.value); // Update parent on manual change
+            }}
+            className="w-full min-h-[100px]" // Ensure min height
+            disabled={isGenerating || isPredicting}
+            readOnly={isGenerating} // Make read-only while generating
+          />
+          <p className="text-xs text-muted-foreground mt-1">Description is auto-generated after image upload. You can edit it afterwards.</p>
+        </div>
+
+         {/* No separate buttons needed as actions are triggered automatically */}
+
       </div>
     </div>
   );
