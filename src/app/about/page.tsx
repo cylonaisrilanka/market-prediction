@@ -51,11 +51,7 @@ export default function AboutPage() {
             <div className="space-y-4 pt-4">
                  {/* Supervisor Section */}
                  <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-secondary/30 dark:bg-secondary/20 rounded-lg border border-border/30">
-                     <Avatar className="h-16 w-16 border-2 border-primary/50 shadow-md">
-                        {/* Placeholder image or use a real one if available */}
-                        <AvatarImage src="https://picsum.photos/seed/supervisor/100" alt="Supervisor Hirushi Dilpriya" data-ai-hint="professional woman" />
-                        <AvatarFallback className="text-lg bg-primary/20 text-primary font-semibold">HD</AvatarFallback>
-                    </Avatar>
+                    {/* Removed Avatar */}
                     <div className="text-center sm:text-left">
                         <h3 className="text-xl font-semibold flex items-center justify-center sm:justify-start gap-2">
                           <Eye className="h-5 w-5 text-accent"/> Supervisor
@@ -68,11 +64,7 @@ export default function AboutPage() {
 
                  {/* Student Section */}
                 <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-secondary/30 dark:bg-secondary/20 rounded-lg border border-border/30">
-                    <Avatar className="h-16 w-16 border-2 border-accent/50 shadow-md">
-                         {/* Placeholder image or use a real one if available */}
-                        <AvatarImage src="https://picsum.photos/seed/student/100" alt="Isuru Shavinda" data-ai-hint="professional man" />
-                        <AvatarFallback className="text-lg bg-accent/20 text-accent font-semibold">IS</AvatarFallback>
-                    </Avatar>
+                   {/* Removed Avatar */}
                     <div className="text-center sm:text-left flex-1">
                          <h3 className="text-xl font-semibold flex items-center justify-center sm:justify-start gap-2">
                            <User className="h-5 w-5 text-primary"/> Developer
