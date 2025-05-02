@@ -1,5 +1,5 @@
 import type {Metadata} from 'next';
-import { Geist } from 'next/font/google';
+import { Geist } from 'next/font/google'; // Removed Geist_Mono as it's not used
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider'; // Import the new client component
 
@@ -19,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>{/* Add suppressHydrationWarning for next-themes */}
+      <body className={`${geistSans.variable} antialiased`}>{/* Removed geistMono variable */}
          <ThemeProvider
             attribute="class"
             defaultTheme="system"
