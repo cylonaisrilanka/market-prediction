@@ -13,6 +13,7 @@ import {useToast} from '@/hooks/use-toast';
 import Image from 'next/image';
 import {UploadCloud, FileImage, DollarSign, MapPin, User, Users, Type, Asterisk, Loader2} from 'lucide-react'; // Added Loader2
 import {Skeleton} from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
 
 interface ProductUploadFormProps {
   setProductDescription: (description: string) => void;
@@ -146,7 +147,7 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({
     }
   };
 
-  // Generic handler for attribute inputs
+  // Generic handler for text inputs
   const handleAttributeChange = (
     setter: (value: string) => void, // Local state setter
     parentSetter: (value: string) => void, // Parent state setter
@@ -158,12 +159,24 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({
      // Check if all details are now filled after this change, *and* image+description exist
     const isLocationFilled = setter === setLocalLocation ? !!value : !!localLocation;
     const isAgeFilled = setter === setLocalAgeSuitability ? !!value : !!localAgeSuitability;
-    const isGenderFilled = setter === setLocalGender ? !!value : !!localGender;
+    const isGenderFilled = !!localGender; // Check existing localGender state
 
     if (imageUrl && description && isLocationFilled && isAgeFilled && isGenderFilled) {
         onUploadComplete(); // Trigger prediction if this change completes the requirements
     }
   };
+
+  // Specific handler for Gender Select dropdown
+  const handleGenderChange = (value: string) => {
+    setLocalGender(value); // Update local state
+    setGender(value); // Update parent state
+
+    // Check if all details are now filled after this change
+    if (imageUrl && description && localLocation && localAgeSuitability && value) {
+      onUploadComplete(); // Trigger prediction
+    }
+  };
+
 
   const allDetailsFilled = Boolean(imageUrl && description && localLocation && localAgeSuitability && localGender);
   const canPredict = allDetailsFilled && !isGenerating;
@@ -286,16 +299,22 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({
                  <Users size={16}/>
              </span>
             <Label htmlFor="gender" className="sr-only">Target Gender</Label>
-            <Input
-              type="text"
-              id="gender"
-              placeholder="Target Gender (e.g., Women)"
-              value={localGender}
-              onChange={(e) => handleAttributeChange(setLocalGender, setGender, e.target.value)}
-              className="w-full focus-visible:ring-primary disabled:opacity-70 pl-10 bg-background/50 dark:bg-card/60 border-input hover:border-primary/30"
-              disabled={isGenerating || isPredicting}
-              required
-            />
+            <Select
+                value={localGender}
+                onValueChange={handleGenderChange}
+                disabled={isGenerating || isPredicting}
+                required
+            >
+              <SelectTrigger className="w-full pl-10 bg-background/50 dark:bg-card/60 border-input hover:border-primary/30 focus-visible:ring-primary disabled:opacity-70" id="gender">
+                <SelectValue placeholder="Select Gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Male">Male</SelectItem>
+                <SelectItem value="Female">Female</SelectItem>
+                 {/* <SelectItem value="Unisex">Unisex</SelectItem> */}
+                 {/* <SelectItem value="Other">Other</SelectItem> */}
+              </SelectContent>
+            </Select>
              <Asterisk size={10} className="absolute right-3 top-3 text-destructive opacity-70 group-focus-within:opacity-100" />
           </div>
         </div>
