@@ -12,12 +12,14 @@ const appId = process.env.NEXT_PUBLIC_FIREBASE_APP_ID;
 const measurementId = process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID;
 
 if (!apiKey) {
-  // This specific error helps pinpoint if the .env var isn't even loading.
-  throw new Error(
-    'Firebase API Key (NEXT_PUBLIC_FIREBASE_API_KEY) is missing. ' +
-    'Please check your .env file, ensure it is correctly set with the NEXT_PUBLIC_ prefix, ' +
-    'and that you have restarted your development server.'
-  );
+  const errorMessage =
+    'CRITICAL ERROR: Firebase API Key (NEXT_PUBLIC_FIREBASE_API_KEY) is UNDEFINED. ' +
+    'This means the .env file is likely missing, in the wrong location, not named correctly (must be `.env`), ' +
+    'or the `NEXT_PUBLIC_FIREBASE_API_KEY` variable is missing from it or misspelled. ' +
+    'Please check your project root for a `.env` file, ensure it contains `NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_KEY_HERE"`, ' +
+    'and that you have RESTARTED your development server (e.g., `npm run dev`) after creating or modifying the .env file.';
+  console.error(errorMessage);
+  throw new Error(errorMessage);
 }
 
 const firebaseConfig = {
