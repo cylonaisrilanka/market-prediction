@@ -31,7 +31,7 @@ export default function LoginPage() {
         title: 'Login Successful',
         description: 'Welcome back!',
       });
-      router.push('/predict'); // Redirect to predict page after successful login
+      router.push('/'); // Redirect to home page after successful login
     } catch (error: any) {
       console.error('Login failed:', error);
       toast({
