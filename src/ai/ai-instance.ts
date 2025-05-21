@@ -24,6 +24,5 @@ export const ai = genkit({
       apiKey: googleGenaiApiKey,
     }),
   ],
-  model: 'googleai/gemini-2.0-flash',
+  model: 'googleai/gemini-2.0-flash', // Default model, can be overridden in specific prompts/flows
 });
-

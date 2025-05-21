@@ -12,8 +12,7 @@ import {generateProductDescription} from '@/ai/flows/generate-product-descriptio
 import {filterProductDescription} from '@/ai/flows/filter-product-description';
 import {useToast} from '@/hooks/use-toast';
 import Image from 'next/image';
-import {UploadCloud, FileImage, DollarSign, MapPin, User, Users, Type, Asterisk, Loader2, AlertCircle} from 'lucide-react';
-import {Skeleton} from '@/components/ui/skeleton';
+import {UploadCloud, FileImage, DollarSign, MapPin, User, Users, Type, Asterisk, Loader2, AlertCircle, CheckCircle} from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ProductUploadFormProps {
@@ -21,8 +20,8 @@ interface ProductUploadFormProps {
   setLocation: (location: string) => void;
   setAgeSuitability: (ageSuitability: string) => void;
   setGender: (gender: string) => void;
-  isPredictingGlobal: boolean; // Renamed to avoid conflict with local isPredicting
-  onUploadComplete: () => void;
+  isPredictingGlobal: boolean;
+  onUploadAndDetailsComplete: () => void; // Callback to trigger prediction
 }
 
 export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({
@@ -31,156 +30,149 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({
   setAgeSuitability,
   setGender,
   isPredictingGlobal,
-  onUploadComplete,
+  onUploadAndDetailsComplete,
 }) => {
   const [imageUrl, setImageUrl] = useState('');
-  const [imageDataUriForAI, setImageDataUriForAI] = useState(''); // Store the data URI separately for AI
+  const [imageDataUriForAI, setImageDataUriForAI] = useState('');
   const [price, setPrice] = useState<number | ''>('');
-  const [description, setDescription] = useState('');
+  const [generatedDescription, setGeneratedDescription] = useState(''); // Stores AI generated desc
   const [localLocation, setLocalLocation] = useState('');
   const [localAgeSuitability, setLocalAgeSuitability] = useState('');
   const [localGender, setLocalGender] = useState('');
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const {toast} = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [formSubmittedOnce, setFormSubmittedOnce] = useState(false);
+
+  const [isImageProcessed, setIsImageProcessed] = useState(false);
+  const [areDetailsFilled, setAreDetailsFilled] = useState(false);
+
+  // Check if all required details are filled
+  useEffect(() => {
+    setAreDetailsFilled(!!(localLocation && localAgeSuitability && localGender));
+  }, [localLocation, localAgeSuitability, localGender]);
+
+  // Effect to trigger description generation and then prediction
+  useEffect(() => {
+    const generateAndPredict = async () => {
+      if (imageDataUriForAI && areDetailsFilled && !isGeneratingDescription && !isPredictingGlobal) {
+        setIsGeneratingDescription(true);
+        setGeneratedDescription('AI is analyzing the design...');
+        setProductDescription(''); // Clear parent state
+
+        const detailsForDesc = `Fashion item analysis context: Target Location: ${localLocation}, Target Age Group: ${localAgeSuitability}, Target Gender: ${localGender}${price ? `, Estimated Price: LKR ${price}` : ''}. Focus on design elements, style, potential use cases, and material if inferable.`;
+
+        try {
+          const genResult = await generateProductDescription({
+            productImageDataUri: imageDataUriForAI,
+            additionalDetails: detailsForDesc,
+          });
+
+          setGeneratedDescription('Filtering description...');
+          const filterResult = await filterProductDescription({
+            description: genResult.productDescription,
+          });
+
+          setGeneratedDescription(filterResult.filteredDescription);
+          setProductDescription(filterResult.filteredDescription); // Update parent state for prediction
+
+          if (!filterResult.isSafe) {
+            toast({
+              variant: 'destructive',
+              title: 'Content Moderated',
+              description: 'Generated description was modified for appropriateness.',
+              duration: 5000,
+            });
+          } else {
+            toast({
+              title: 'Description Ready',
+              description: 'AI-generated description complete.',
+              variant: "default",
+              icon: <CheckCircle className="h-5 w-5 text-green-500" />,
+              duration: 3000,
+            });
+          }
+          // Now that description is ready and details are filled, trigger prediction
+          onUploadAndDetailsComplete();
+
+        } catch (error: any) {
+          console.error('Error in description generation/filtering:', error);
+          setGeneratedDescription('');
+          setProductDescription('');
+          toast({
+            variant: 'destructive',
+            title: 'Description Failed',
+            description: error.message || 'Could not generate product description.',
+          });
+        } finally {
+          setIsGeneratingDescription(false);
+        }
+      }
+    };
+
+    if (isImageProcessed && areDetailsFilled) {
+      generateAndPredict();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isImageProcessed, areDetailsFilled, imageDataUriForAI, localLocation, localAgeSuitability, localGender, price, onUploadAndDetailsComplete, setProductDescription, toast]);
 
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith('image/')) {
-        toast({
-          variant: 'destructive',
-          title: 'Invalid File Type',
-          description: 'Please upload an image file (JPEG, PNG, GIF, etc.).',
-        });
+        toast({ variant: 'destructive', title: 'Invalid File Type', description: 'Please upload an image.' });
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          variant: 'destructive',
-          title: 'File Too Large',
-          description: 'Image size should not exceed 5MB.',
-        });
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({ variant: 'destructive', title: 'File Too Large', description: 'Image should be less than 5MB.' });
         return;
       }
 
-      setImageUrl(URL.createObjectURL(file)); // For immediate preview
-      setDescription('');
+      setImageUrl(URL.createObjectURL(file));
+      setGeneratedDescription(''); // Reset description
       setProductDescription('');
-      setIsGeneratingDescription(true);
+      setIsImageProcessed(false); // Mark as not yet processed for AI
+      setIsGeneratingDescription(true); // Indicate start of processing a new image
+      setGeneratedDescription('Processing image...');
+
 
       const reader = new FileReader();
-      reader.onloadend = async () => {
-        const imgDataUrl = reader.result as string;
-        setImageDataUriForAI(imgDataUrl); // Store for AI processing
-        // Do not call generateAndFilterDescription here, it will be called by useEffect
+      reader.onloadend = () => {
+        setImageDataUriForAI(reader.result as string);
+        setIsImageProcessed(true); // Mark image as processed for AI
+        // The useEffect will now handle description generation if details are also filled
+        // No longer setting isGeneratingDescription to false here, useEffect handles it
+        if(!areDetailsFilled) {
+          setIsGeneratingDescription(false); // If details not filled, stop "processing image..."
+          setGeneratedDescription("Please fill all required details for AI analysis.");
+        }
       };
       reader.onerror = () => {
         setIsGeneratingDescription(false);
-        toast({
-          variant: 'destructive',
-          title: 'File Read Error',
-          description: 'Could not read the selected image file.',
-        });
+        setIsImageProcessed(false);
+        toast({ variant: 'destructive', title: 'File Read Error', description: 'Could not read image file.' });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // useEffect to trigger description generation when all necessary inputs for it are ready
-  useEffect(() => {
-    if (imageDataUriForAI && (localLocation || localAgeSuitability || localGender || price !== '')) {
-      // Check if any of the optional details that go into the description prompt are available
-      // or if the user intends to proceed without them by filling required fields later
-      generateAndFilterDescription(imageDataUriForAI);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imageDataUriForAI, localLocation, localAgeSuitability, localGender, price]); // Dependencies that influence the description generation prompt
-
-  const generateAndFilterDescription = async (imageDataUri: string) => {
-    if (!imageDataUri) return; // Should not happen if called from useEffect correctly
-
-    setDescription('AI is analyzing the design...');
-    setProductDescription('');
-    setIsGeneratingDescription(true); // Ensure this is set
-
-    const details = `Analyze the fashion item in the image. Additional context: Target Location: ${localLocation || 'Not specified'}, Target Age Suitability: ${localAgeSuitability || 'Not specified'}, Target Gender: ${localGender || 'Not specified'}${price ? `, Estimated Price: LKR ${price}` : ''}. Generate a compelling and appropriate product description.`;
-
-    try {
-      const genResult = await generateProductDescription({
-        productImageDataUri: imageDataUri,
-        additionalDetails: details,
-      });
-
-      setDescription('Filtering description...');
-
-      const filterResult = await filterProductDescription({
-        description: genResult.productDescription,
-      });
-
-      setDescription(filterResult.filteredDescription);
-      setProductDescription(filterResult.filteredDescription);
-
-      if (!filterResult.isSafe) {
-        toast({
-          variant: 'destructive',
-          title: 'Content Moderated',
-          description: 'Generated description was modified for appropriateness.',
-          duration: 5000,
-        });
-      } else {
-        toast({
-          title: 'Description Generated',
-          description: 'AI has generated a product description.',
-          duration: 3000,
-        });
-      }
-      // Check if prediction can be triggered now
-      if (filterResult.filteredDescription && localLocation && localAgeSuitability && localGender) {
-        onUploadComplete();
-      }
-
-    } catch (error: any) {
-      console.error('Error generating/filtering description:', error);
-      setDescription('');
-      setProductDescription('');
-      toast({
-        variant: 'destructive',
-        title: 'Description Generation Failed',
-        description: error.message || 'Could not generate description. Please try again.',
-      });
-    } finally {
-      setIsGeneratingDescription(false);
-    }
-  };
 
   const handleAttributeChange = (
-    setter: (value: string) => void,
-    parentSetter: (value: string) => void,
+    setter: (value: string) => void, // Local state setter
+    parentSetter: (value: string) => void, // Parent state setter (for prediction)
     value: string
   ) => {
     setter(value);
-    parentSetter(value);
-
-    // If an image has been processed and its description is available,
-    // and now all *required* text fields are filled, trigger prediction.
-    if (imageUrl && description && value && (setter === setLocalLocation ? true : !!localLocation) && (setter === setLocalAgeSuitability ? true : !!localAgeSuitability) && !!localGender) {
-        onUploadComplete();
-    }
+    parentSetter(value); // Keep parent state in sync for prediction trigger
   };
-
+  
   const handleGenderChange = (value: string) => {
-    setLocalGender(value);
-    setGender(value);
-    if (imageUrl && description && localLocation && localAgeSuitability && value) {
-      onUploadComplete();
-    }
+    handleAttributeChange(setLocalGender, setGender, value);
   };
+
 
   const isFormFullyDisabled = isGeneratingDescription || isPredictingGlobal;
-  const allRequiredDetailsFilledForPrediction = !!(imageUrl && description && localLocation && localAgeSuitability && localGender);
+  const allRequiredDetailsFilledForPrediction = !!(imageUrl && generatedDescription && localLocation && localAgeSuitability && localGender);
 
   return (
     <Card className="w-full max-w-lg mx-auto shadow-xl border border-border/50 bg-gradient-to-br from-card via-card/95 to-card dark:from-card dark:via-card/90 dark:to-card rounded-xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:border-primary/40">
@@ -189,7 +181,7 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({
           <UploadCloud size={28} strokeWidth={2.5} className="text-accent"/> Upload New Design
         </CardTitle>
         <CardDescription className="text-primary/80 dark:text-primary/70 text-sm mt-1">
-          Provide an image and details to analyze market trends.
+          Provide image and details for AI trend analysis & sales forecast.
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-6 space-y-6 px-4 sm:px-6 pb-6">
@@ -221,7 +213,7 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({
               />
             </div>
           )}
-          {isGeneratingDescription && !imageUrl && (
+          {isGeneratingDescription && !imageUrl && ( // Show loader if processing and no image URL yet (initial click)
              <div className="mt-4 flex justify-center items-center p-2 border-2 border-dashed border-border/50 rounded-lg bg-gradient-to-br from-muted/40 to-muted/20 h-[216px]">
               <Loader2 className="h-8 w-8 text-primary animate-spin" />
             </div>
@@ -231,8 +223,8 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({
         <hr className="border-border/20" />
 
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-foreground/90 mb-1 tracking-tight">Additional Details</h3>
-          <p className="text-sm text-muted-foreground mb-4">Provide context for more accurate predictions. <span className="text-destructive">* Required</span></p>
+          <h3 className="text-lg font-semibold text-foreground/90 mb-1 tracking-tight">Market Context Details</h3>
+          <p className="text-sm text-muted-foreground mb-4">Provide context for accurate AI predictions. <span className="text-destructive">* Required</span></p>
 
           <div className="space-y-1.5 relative group">
              <span className="absolute left-3 top-1/2 -translate-y-1/2 transform text-muted-foreground pointer-events-none group-focus-within:text-primary transition-colors">
@@ -242,14 +234,13 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({
             <Input
               type="number"
               id="price"
-              placeholder="Estimated Price (LKR)"
+              placeholder="Estimated Price (LKR, Optional)"
               value={price}
               onChange={(e) => setPrice(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
               className="w-full focus-visible:ring-primary disabled:opacity-70 pl-10 bg-background/50 dark:bg-card/60 border-input hover:border-primary/30"
               disabled={isFormFullyDisabled}
               min="0"
             />
-            <p className="text-xs text-muted-foreground pl-1">Optional, but helps analysis.</p>
           </div>
 
           <div className="space-y-1.5 relative group">
@@ -278,7 +269,7 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({
             <Input
               type="text"
               id="ageSuitability"
-              placeholder="Target Age Group (e.g., 18-25, Teenagers)"
+              placeholder="Target Age Group (e.g., 18-25, Gen Z)"
               value={localAgeSuitability}
               onChange={(e) => handleAttributeChange(setLocalAgeSuitability, setAgeSuitability, e.target.value)}
               className="w-full focus-visible:ring-primary disabled:opacity-70 pl-10 bg-background/50 dark:bg-card/60 border-input hover:border-primary/30"
@@ -300,7 +291,7 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({
                 required
             >
               <SelectTrigger className="w-full pl-10 bg-background/50 dark:bg-card/60 border-input hover:border-primary/30 focus-visible:ring-primary disabled:opacity-70" id="gender">
-                <SelectValue placeholder="Select Gender" />
+                <SelectValue placeholder="Select Target Gender" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Male">Male</SelectItem>
@@ -321,25 +312,23 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({
           <Textarea
             id="description"
             placeholder={
-              isGeneratingDescription ? 'AI is working its magic...' :
-              !imageUrl ? 'Upload an image to generate description...' :
-              'Description will appear here once generated...'
+              isGeneratingDescription ? 'AI is crafting a description...' :
+              !imageUrl ? 'Upload image and fill details to generate description...' :
+              (generatedDescription || 'Description will appear here...')
             }
-            value={description}
+            value={generatedDescription}
             onChange={(e) => {
-              const newDescription = e.target.value;
-              setDescription(newDescription);
-              setProductDescription(newDescription);
-               if (imageUrl && newDescription && localLocation && localAgeSuitability && localGender) {
-                 onUploadComplete();
-               }
+              // Allow editing, but prediction uses the AI-generated one passed to parent
+              setGeneratedDescription(e.target.value);
+              // Optionally, you could update parent here too if manual edits should override AI for prediction
+              // setProductDescription(e.target.value); 
             }}
             className="w-full min-h-[120px] sm:min-h-[150px] focus-visible:ring-primary bg-secondary/30 dark:bg-card/40 disabled:opacity-70 rounded-md shadow-inner border-input hover:border-primary/30"
-            disabled={isPredictingGlobal} // Only disable for global prediction, allow edit during own generation
-            readOnly={isGeneratingDescription} // Readonly only while *this form* is generating
+            disabled={isPredictingGlobal} 
+            readOnly={isGeneratingDescription && generatedDescription.startsWith('AI is')} // Readonly while initial generation
           />
            <p className="text-xs text-muted-foreground mt-1">
-             {isGeneratingDescription ? 'Generating description...' : (description ? 'You can edit the AI-generated description above.' : 'Description will be generated after image upload and providing some details.')}
+             {isGeneratingDescription ? 'Generating description...' : (generatedDescription ? 'AI description complete. You can edit if needed.' : 'Description will be auto-generated after image upload and all required details are filled.')}
           </p>
         </div>
 
@@ -351,7 +340,7 @@ export const ProductUploadForm: React.FC<ProductUploadFormProps> = ({
         )}
          {!allRequiredDetailsFilledForPrediction && imageUrl && !isGeneratingDescription && !isPredictingGlobal && (
              <p className="text-sm text-center text-amber-600 dark:text-amber-500 font-medium pt-2 px-2 flex items-center justify-center gap-2">
-                <AlertCircle size={16} /> Please fill in all required (*) details to enable trend prediction.
+                <AlertCircle size={16} /> Please fill in all required (*) details to enable AI analysis and trend prediction.
              </p>
          )}
       </CardContent>
