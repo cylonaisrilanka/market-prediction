@@ -25,9 +25,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  devIndicators: {
-    buildActivity: false, // Disable the build activity indicator (dots in corner)
-  },
+  devIndicators: false, //{
+    //buildActivity: false, // Disable the build activity indicator (dots in corner)
+  //},
   // It's generally not recommended to fully disable the Next.js development overlay
   // as it provides crucial error information.
   // If you must, you can try:
