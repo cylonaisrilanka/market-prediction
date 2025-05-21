@@ -3,7 +3,7 @@
 /**
  * @fileOverview Predicts garment trend renewals based on product description, target demographics, and location.
  * It provides a trend summary, detailed analysis including similar item context, market sentiment, confidence,
- * and a specific outlook for similar items/categories.
+ * specific outlook for similar items/categories, and actionable sales improvement suggestions.
  *
  * - predictTrendRenewal - A function that predicts trend renewals.
  * - PredictTrendRenewalInput - The input type for the predictTrendRenewal function.
@@ -32,7 +32,8 @@ const PredictTrendRenewalOutputSchema = z.object({
   trendAnalysis: z.string().describe("Detailed analysis including factors supporting the prediction, discussion of similar items/categories, and potential challenges/opportunities."),
   marketSentiment: z.string().describe("Overall market sentiment for this type of item in the target market (e.g., Very Positive, Positive, Neutral, Negative, Very Negative)."),
   confidenceLevel: z.string().describe("The AI's confidence in this prediction (e.g., High, Medium, Low)."),
-  similarItemsAnalysis: SimilarItemsAnalysisSchema.default({ trendIndicator: 'Stable', marketSentiment: 'Neutral' })
+  similarItemsAnalysis: SimilarItemsAnalysisSchema.default({ trendIndicator: 'Stable', marketSentiment: 'Neutral' }),
+  salesImprovementSuggestions: z.array(z.string()).describe("Actionable suggestions (2-4 bullet points) to potentially improve sales based on the trend analysis, considering the item's characteristics and market context.").optional(),
 });
 
 export type PredictTrendRenewalOutput = z.infer<typeof PredictTrendRenewalOutputSchema>;
@@ -65,6 +66,7 @@ Based on this information, provide the following:
 5.  **similarItemsAnalysis**: Provide a structured summary for how *similar items or the broader fashion category* are generally faring in the target market:
     *   **trendIndicator**: Choose one to describe the general trend for these similar items/categories: 'Strong Growth', 'Moderate Growth', 'Stable', 'Moderate Decline', 'Strong Decline', or 'Mixed/Volatile'.
     *   **marketSentiment**: Choose one for the overall market sentiment for these similar items/categories: 'Very Positive', 'Positive', 'Neutral', 'Negative', 'Very Negative'.
+6.  **salesImprovementSuggestions**: Based on your overall analysis of the design, its predicted trend, and market sentiment, provide 2-4 concise, actionable bullet-point suggestions that could help improve its sales potential. These could relate to marketing angles, specific target niches, minor design considerations (if appropriate and inferable), or pricing strategies relevant to the perceived trend. Focus on high-impact, realistic advice.
 
 Ensure your language is professional, insightful, and actionable for a fashion designer or brand.
 Focus on providing a realistic and data-informed perspective, even if simulated based on your extensive knowledge.
@@ -89,6 +91,8 @@ const predictTrendRenewalFlow = ai.defineFlow(
       marketSentiment: output.marketSentiment || "Neutral",
       confidenceLevel: output.confidenceLevel || "Medium",
       similarItemsAnalysis: output.similarItemsAnalysis || { trendIndicator: 'Stable', marketSentiment: 'Neutral' },
+      salesImprovementSuggestions: output.salesImprovementSuggestions || [],
     };
   }
 );
+

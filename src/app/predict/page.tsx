@@ -17,7 +17,7 @@ import {
 } from 'recharts';
 import {ProductUploadForm} from '@/components/product-upload-form';
 import {Toaster} from '@/components/ui/toaster';
-import {BrainCircuit, TrendingUp, BarChartBig, Info, UploadCloud, Home as HomeIcon, Activity, BarChartHorizontalBig, CheckCircle, AlertTriangle, Layers } from 'lucide-react'; // Added Layers
+import {BrainCircuit, TrendingUp, BarChartBig, Info, UploadCloud, Home as HomeIcon, Activity, BarChartHorizontalBig, CheckCircle, AlertTriangle, Layers, Lightbulb, ListChecks } from 'lucide-react'; // Added Lightbulb, ListChecks
 import {Skeleton} from '@/components/ui/skeleton';
 import {
   Tooltip as ShadTooltip,
@@ -36,6 +36,7 @@ export default function PredictPage() {
   const [predictionOutput, setPredictionOutput] = useState<PredictTrendRenewalOutput | null>(null);
   const [chartData, setChartData] = useState<Array<{name: string; sales: number}>>([]);
   const [similarItemsChartData, setSimilarItemsChartData] = useState<Array<{name: string; sales: number}>>([]);
+  const [salesSuggestions, setSalesSuggestions] = useState<string[]>([]);
   const [productDescription, setProductDescription] = useState<string>('');
   const [isPredicting, setIsPredicting] = useState(false);
   const [location, setLocation] = useState('');
@@ -58,6 +59,7 @@ export default function PredictPage() {
     setPredictionOutput(null);
     setChartData([]);
     setSimilarItemsChartData([]);
+    setSalesSuggestions([]);
     setHasAttemptedPrediction(true);
 
     try {
@@ -68,6 +70,7 @@ export default function PredictPage() {
         gender: gender,
       });
       setPredictionOutput(result);
+      setSalesSuggestions(result.salesImprovementSuggestions || []);
 
       // Generate sales data for the main uploaded item
       const mainSalesData = generateSalesData(result.predictedTrend, result.marketSentiment, result.confidenceLevel, location, ageSuitability, gender);
@@ -100,10 +103,12 @@ export default function PredictPage() {
         trendAnalysis: 'Could not generate trend analysis due to an error. Please check console or try again.',
         marketSentiment: 'Unknown',
         confidenceLevel: 'Low',
-        similarItemsAnalysis: { trendIndicator: 'Unknown', marketSentiment: 'Unknown' }
+        similarItemsAnalysis: { trendIndicator: 'Unknown', marketSentiment: 'Unknown' },
+        salesImprovementSuggestions: ['Could not generate suggestions due to an error.'],
       });
       setChartData([]);
       setSimilarItemsChartData([]);
+      setSalesSuggestions(['Could not generate suggestions due to an error.']);
       toast({
         variant: "destructive",
         title: "Prediction Failed",
@@ -288,7 +293,7 @@ export default function PredictPage() {
                         <Activity className="h-5 w-5 sm:h-6 sm:w-6 text-accent" strokeWidth={2.5}/>
                         <span>Uploaded Item: Detailed Trend Analysis</span>
                       </CardTitle>
-                      <CardDescription className="text-muted-foreground text-sm mt-1">Insights into market dynamics, similar items, and influencing factors for your design.</CardDescription>
+                      <CardDescription className="text-muted-foreground text-sm mt-1">Insights into market dynamics, influencing factors, and similar items for your design.</CardDescription>
                     </CardHeader>
                     <CardContent className="p-4 sm:p-6 min-h-[120px] flex items-center">
                       {isPredicting && !predictionOutput?.trendAnalysis ? (
@@ -305,6 +310,37 @@ export default function PredictPage() {
                       )}
                     </CardContent>
                   </Card>
+                  
+                  <Card className="shadow-lg border border-border/50 overflow-hidden bg-card/90 dark:bg-card/80 rounded-xl backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:border-primary/30">
+                    <CardHeader className="bg-gradient-to-r from-green-500/10 via-primary/5 to-transparent dark:from-green-500/20 dark:via-primary/10 dark:to-transparent border-b border-border/30 p-4 sm:p-5">
+                      <CardTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl font-semibold tracking-tight text-green-600 dark:text-green-500">
+                        <Lightbulb className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 dark:text-yellow-400" strokeWidth={2.5}/>
+                        <span>Sales Enhancement Strategies</span>
+                      </CardTitle>
+                      <CardDescription className="text-muted-foreground text-sm mt-1">AI-generated suggestions to potentially boost your design's market performance.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-4 sm:p-6 min-h-[100px]">
+                      {isPredicting && salesSuggestions.length === 0 ? (
+                        <div className="space-y-3 pt-1 w-full">
+                          <Skeleton className="h-4 w-full rounded bg-muted/50" />
+                          <Skeleton className="h-4 w-5/6 rounded bg-muted/40" />
+                          <Skeleton className="h-4 w-3/4 rounded bg-muted/30" />
+                        </div>
+                      ) : salesSuggestions.length > 0 ? (
+                        <ul className="space-y-2.5 text-foreground/90 text-sm sm:text-base">
+                          {salesSuggestions.map((suggestion, index) => (
+                            <li key={index} className="flex items-start gap-2.5">
+                              <ListChecks className="h-5 w-5 text-green-500 mt-0.5 shrink-0" strokeWidth={2}/>
+                              <span>{suggestion}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                         <p className="text-muted-foreground italic">Actionable suggestions will appear here.</p>
+                      )}
+                    </CardContent>
+                  </Card>
+
 
                    <Card className="shadow-lg border border-border/50 overflow-hidden bg-card/90 dark:bg-card/80 rounded-xl backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:border-primary/30">
                     <CardHeader className="bg-gradient-to-r from-primary/10 via-accent/5 to-transparent dark:from-primary/20 dark:via-accent/10 dark:to-transparent border-b border-border/30 p-4 sm:p-5">
@@ -323,7 +359,7 @@ export default function PredictPage() {
                       <CardDescription className="text-muted-foreground text-sm mt-1">Visual forecast of potential sales volume for your design over the next five months.</CardDescription>
                     </CardHeader>
                     <CardContent className="p-4 sm:p-6">
-                      {isPredicting && chartData.length === 0 && predictionOutput ? ( // show skeleton only if predicting and data not yet loaded BUT predictionOutput exists
+                      {isPredicting && chartData.length === 0 && predictionOutput ? ( 
                         <Skeleton className="h-[250px] sm:h-[300px] w-full rounded-md bg-gradient-to-br from-muted/50 to-muted/30" />
                       ) : chartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
@@ -348,7 +384,6 @@ export default function PredictPage() {
                     </CardContent>
                   </Card>
 
-                  {/* New Card for Similar Items Trend */}
                   <Card className="shadow-lg border border-border/50 overflow-hidden bg-card/90 dark:bg-card/80 rounded-xl backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:border-accent/30">
                     <CardHeader className="bg-gradient-to-r from-accent/10 via-secondary/5 to-transparent dark:from-accent/20 dark:via-secondary/10 dark:to-transparent border-b border-border/30 p-4 sm:p-5">
                       <CardTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl font-semibold tracking-tight text-accent">
@@ -427,3 +462,4 @@ export default function PredictPage() {
      </TooltipProvider>
   );
 }
+
