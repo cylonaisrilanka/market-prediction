@@ -3,6 +3,8 @@ import type {Metadata} from 'next';
 import { Geist } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
+import { AuthProvider } from '@/contexts/auth-context'; // Import AuthProvider
+import { Toaster } from '@/components/ui/toaster'; // Ensure Toaster is imported for auth messages
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -22,13 +24,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} antialiased`}>
-         <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider> {/* Wrap with AuthProvider */}
             {children}
+            <Toaster /> {/* Toaster for notifications */}
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

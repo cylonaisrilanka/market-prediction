@@ -5,11 +5,22 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-// import Image from 'next/image'; // Placeholder Image component is not used on this page
 import { ModeToggle } from '@/components/mode-toggle';
-import { BrainCircuit, TrendingUp, BarChartBig, ArrowRight, Users, Zap } from 'lucide-react'; // Replaced Info with Zap
+import { BrainCircuit, TrendingUp, BarChartBig, ArrowRight, Users, Zap, LogIn, LogOut, UserCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/auth-context';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
 
 export default function Home() {
+  const { user, loading, logOut } = useAuth();
+
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-background via-secondary/30 to-background dark:from-background dark:via-secondary/10 dark:to-background text-foreground">
       <header className="sticky top-0 z-50 flex items-center justify-between p-3 sm:p-4 bg-card/80 dark:bg-card/70 backdrop-blur-lg shadow-md border-b border-border/40">
@@ -21,7 +32,7 @@ export default function Home() {
             FashionFlow AI
           </h1>
         </div>
-        <nav className="flex items-center gap-1 sm:gap-2"> {/* Reduced gap for smaller screens */}
+        <nav className="flex items-center gap-1 sm:gap-2">
            <Link href="/predict" passHref>
                 <Button variant="ghost" size="sm" className="text-sm sm:text-base px-2 sm:px-3 hover:bg-primary/10 dark:hover:bg-primary/20">
                   <Zap className="mr-1 sm:mr-2 h-4 w-4" /> Predict
@@ -32,6 +43,30 @@ export default function Home() {
                   <Users className="mr-1 sm:mr-2 h-4 w-4" /> About
                  </Button>
             </Link>
+          
+          {!loading && user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-sm sm:text-base px-2 sm:px-3 hover:bg-primary/10 dark:hover:bg-primary/20">
+                  <UserCircle className="mr-1 sm:mr-2 h-4 w-4" /> My Account
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel className="text-xs text-muted-foreground">{user.email}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logOut} className="cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : !loading ? (
+            <Link href="/login" passHref>
+              <Button variant="outline" size="sm" className="text-sm sm:text-base px-2 sm:px-3 hover:bg-accent/10 dark:hover:bg-accent/20 border-primary/50 text-primary hover:text-accent-foreground">
+                <LogIn className="mr-1 sm:mr-2 h-4 w-4" /> Login
+              </Button>
+            </Link>
+          ) : null}
           <ModeToggle />
         </nav>
       </header>
@@ -87,4 +122,3 @@ export default function Home() {
     </div>
   );
 }
-

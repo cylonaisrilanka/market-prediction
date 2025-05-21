@@ -3,6 +3,7 @@
 'use client';
 
 import {useState, useCallback, useEffect} from 'react';
+import {useRouter} from 'next/navigation'; // For redirecting
 import {predictTrendRenewal, PredictTrendRenewalOutput} from '@/ai/flows/predict-trend-renewal';
 import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
 import {
@@ -16,8 +17,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import {ProductUploadForm} from '@/components/product-upload-form';
-import {Toaster} from '@/components/ui/toaster';
-import {BrainCircuit, TrendingUp, BarChartBig, Info, UploadCloud, Home as HomeIcon, Activity, BarChartHorizontalBig, CheckCircle, AlertTriangle, Layers, Lightbulb, ListChecks } from 'lucide-react'; // Added Lightbulb, ListChecks
+import {BrainCircuit, TrendingUp, BarChartBig, Info, UploadCloud, Home as HomeIcon, Activity, BarChartHorizontalBig, CheckCircle, AlertTriangle, Layers, Lightbulb, ListChecks, LogIn, UserCircle, LogOut } from 'lucide-react';
 import {Skeleton} from '@/components/ui/skeleton';
 import {
   Tooltip as ShadTooltip,
@@ -30,6 +30,15 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/auth-context'; // Import useAuth
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 
 export default function PredictPage() {
@@ -43,7 +52,18 @@ export default function PredictPage() {
   const [ageSuitability, setAgeSuitability] = useState('');
   const [gender, setGender] = useState('');
   const [hasAttemptedPrediction, setHasAttemptedPrediction] = useState(false);
+  
   const { toast } = useToast();
+  const { user, loading: authLoading, logOut } = useAuth(); // Get user and authLoading state
+  const router = useRouter();
+
+  // Route protection
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login?redirect=/predict'); // Redirect to login if not authenticated
+    }
+  }, [user, authLoading, router]);
+
 
   const handleTrendPrediction = useCallback(async () => {
     if (!productDescription || !location || !ageSuitability || !gender) {
@@ -72,23 +92,20 @@ export default function PredictPage() {
       setPredictionOutput(result);
       setSalesSuggestions(result.salesImprovementSuggestions || []);
 
-      // Generate sales data for the main uploaded item
       const mainSalesData = generateSalesData(result.predictedTrend, result.marketSentiment, result.confidenceLevel, location, ageSuitability, gender);
       setChartData(mainSalesData);
 
-      // Generate sales data for similar items/category
       if (result.similarItemsAnalysis) {
         const similarSalesData = generateSalesData(
-          result.similarItemsAnalysis.trendIndicator, // Use trendIndicator as "trend"
-          result.similarItemsAnalysis.marketSentiment, // Use marketSentiment as "sentiment"
-          "Medium", // Assume medium confidence for similar items chart for now
-          location, // Base on same location
-          ageSuitability, // Base on same age
-          gender // Base on same gender
+          result.similarItemsAnalysis.trendIndicator, 
+          result.similarItemsAnalysis.marketSentiment, 
+          "Medium", 
+          location, 
+          ageSuitability, 
+          gender 
         );
         setSimilarItemsChartData(similarSalesData);
       }
-
 
       toast({
         title: "Prediction Successful",
@@ -141,7 +158,6 @@ export default function PredictPage() {
       else if (sentimentLower.includes('very negative')) { baseSales *= 0.3; overallModifier -= 0.6; }
 
       const trendLower = trend?.toLowerCase() || "";
-      // Mapping for specific item's predictedTrend
       if (['strong renewal likely', 'high demand', 'significant upswing', 'strong growth'].some(term => trendLower.includes(term))) { trendStrengthMultiplier = 1.20; overallModifier += 0.3; }
       else if (['moderate growth', 'upswing possible', 'growing popularity'].some(term => trendLower.includes(term))) { trendStrengthMultiplier = 1.10; overallModifier += 0.15; }
       else if (['steady demand foreseen', 'stable'].some(term => trendLower.includes(term))) { trendStrengthMultiplier = 1.02; }
@@ -178,11 +194,11 @@ export default function PredictPage() {
   };
 
   useEffect(() => {
-    if (productDescription && location && ageSuitability && gender && hasAttemptedPrediction && !isPredicting) {
+    if (user && productDescription && location && ageSuitability && gender && hasAttemptedPrediction && !isPredicting) {
       handleTrendPrediction();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productDescription, location, ageSuitability, gender, hasAttemptedPrediction]); 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, productDescription, location, ageSuitability, gender, hasAttemptedPrediction]); 
 
 
   const onUploadAndDetailsComplete = useCallback(() => {
@@ -216,6 +232,28 @@ export default function PredictPage() {
     return 'default';
   };
 
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-secondary/30 to-background">
+        <BrainCircuit className="h-16 w-16 text-primary animate-pulse" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    // This will typically be handled by the useEffect redirect, but it's a fallback.
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-secondary/30 to-background p-4">
+        <Card className="w-full max-w-md text-center p-8">
+          <CardTitle className="text-2xl text-primary">Access Denied</CardTitle>
+          <CardDescription className="mt-2 mb-4 text-muted-foreground">Please log in to access the prediction tool.</CardDescription>
+          <Link href="/login?redirect=/predict">
+            <Button>Go to Login</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <TooltipProvider>
@@ -236,6 +274,29 @@ export default function PredictPage() {
                          <span className="sr-only">Home</span>
                      </Button>
                  </Link>
+                {!authLoading && user ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="px-2 sm:px-3 hover:bg-primary/10 dark:hover:bg-primary/20">
+                          <UserCircle className="mr-1 sm:mr-2 h-4 w-4" /> <span className="hidden sm:inline">My Account</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel className="text-xs text-muted-foreground">{user.email}</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={logOut} className="cursor-pointer">
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Logout
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : !authLoading ? (
+                    <Link href="/login" passHref>
+                      <Button variant="outline" size="sm" className="hover:bg-accent/10 dark:hover:bg-accent/20 border-primary/50 text-primary hover:text-accent-foreground">
+                        <LogIn className="mr-1 sm:mr-2 h-4 w-4" /> Login
+                      </Button>
+                    </Link>
+                  ) : null}
               <ModeToggle />
           </div>
         </header>
@@ -452,7 +513,6 @@ export default function PredictPage() {
             </div>
           </div>
         </main>
-        <Toaster />
          <footer className="text-center p-4 text-xs text-muted-foreground border-t border-border/20">
            © {new Date().getFullYear()} FashionFlow AI.
            <Link href="/" className="ml-2 underline hover:text-primary">Home</Link>
@@ -462,4 +522,3 @@ export default function PredictPage() {
      </TooltipProvider>
   );
 }
-
