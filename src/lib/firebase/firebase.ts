@@ -1,3 +1,4 @@
+
 // src/lib/firebase/firebase.ts
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
@@ -6,11 +7,14 @@ const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 
 if (!apiKey || apiKey.trim() === '') {
   const errorMessage =
-    'CRITICAL ERROR: Firebase API Key (NEXT_PUBLIC_FIREBASE_API_KEY) is UNDEFINED or EMPTY. ' +
-    'This means the .env file is likely missing, in the wrong location, not named correctly (must be `.env`), ' +
-    'the `NEXT_PUBLIC_FIREBASE_API_KEY` variable is missing from it, misspelled, or set to an empty string. ' +
-    'Please check your project root for a `.env` file, ensure it contains `NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_KEY_HERE"`, ' +
-    'and that you have RESTARTED your development server (e.g., `npm run dev`) after creating or modifying the .env file.';
+    'CRITICAL LOCAL SETUP ERROR: The Firebase API Key (NEXT_PUBLIC_FIREBASE_API_KEY) is missing or empty in your environment.\n\n' +
+    'THIS IS A PROBLEM WITH YOUR LOCAL .env FILE CONFIGURATION THAT **YOU** MUST FIX.\n\n' +
+    'Follow these steps carefully on your local machine:\n' +
+    '1. Ensure a file named EXACTLY `.env` exists in the ROOT directory of your project (same level as package.json).\n' +
+    '2. Inside `.env`, ensure the line `NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_ACTUAL_FIREBASE_API_KEY"` is present, with your REAL API key.\n' +
+    '3. Also, ensure ALL other `NEXT_PUBLIC_FIREBASE_...` variables are correctly set with your project details (authDomain, projectId, etc.).\n' +
+    '4. **YOU MUST RESTART YOUR DEVELOPMENT SERVER** (e.g., stop `npm run dev` with Ctrl+C and run it again) after creating or modifying the .env file.\n\n' +
+    'The application cannot proceed without this valid API key.';
   console.error(errorMessage);
   throw new Error(errorMessage);
 }
