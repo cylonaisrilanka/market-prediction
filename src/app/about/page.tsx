@@ -1,6 +1,11 @@
 
 // src/app/about/page.tsx
 'use client';
+/**
+ * @fileOverview The About page for the FashionFlow AI application.
+ * Displays information about the project, its purpose, the supervisor, and the developer.
+ * Includes navigation back to the home page, prediction tool, and authentication links/status.
+ */
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ModeToggle } from '@/components/mode-toggle';
@@ -17,14 +22,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-
+/**
+ * AboutPage component.
+ * Renders the content for the "/about" route.
+ * @returns {JSX.Element} The rendered About page.
+ */
 export default function AboutPage() {
   const { user, loading, logOut } = useAuth();
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-background via-secondary/30 to-background dark:from-background dark:via-secondary/10 dark:to-background text-foreground">
+       {/* Header Section */}
        <header className="sticky top-0 z-50 flex items-center justify-between p-3 sm:p-4 bg-card/80 dark:bg-card/70 backdrop-blur-lg shadow-md border-b border-border/40">
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Logo and App Name */}
           <div className="p-1.5 bg-gradient-to-br from-primary/20 to-accent/20 dark:from-primary/30 dark:to-accent/30 rounded-lg shadow-inner">
                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary h-6 w-6 sm:h-7 sm:w-7"><path d="m12 3 4 4 2-2 4 4-6 6-4-4-2 2-4-4 6-6z"/><path d="m3 12 4 4 6-6 4 4 4-4"/></svg>
           </div>
@@ -32,6 +43,7 @@ export default function AboutPage() {
             FashionFlow AI - About
           </h1>
         </div>
+          {/* Navigation and Actions */}
           <div className="flex items-center gap-2 sm:gap-4">
                  <Link href="/" passHref>
                      <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-primary/10 dark:hover:bg-primary/20">
@@ -39,6 +51,7 @@ export default function AboutPage() {
                          <span className="sr-only">Home</span>
                      </Button>
                  </Link>
+                {/* Auth Status and Actions */}
                 {!loading && user ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -61,11 +74,12 @@ export default function AboutPage() {
                       <LogIn className="mr-1 sm:mr-2 h-4 w-4" /> Login
                     </Button>
                   </Link>
-                ) : null}
-              <ModeToggle />
+                ) : null} {/* Render nothing if auth is still loading */}
+              <ModeToggle /> {/* Theme toggle component */}
           </div>
       </header>
 
+      {/* Main Content Section */}
       <main className="flex-1 flex items-center justify-center p-4 md:p-8 lg:p-12">
         <Card className="w-full max-w-xl md:max-w-2xl shadow-xl border border-border/50 bg-card/90 dark:bg-card/85 rounded-xl backdrop-blur-md transition-all duration-300 hover:shadow-2xl hover:border-primary/40">
           <CardHeader className="text-center border-b border-border/30 pb-6 pt-8">
@@ -79,9 +93,10 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent className="p-6 md:p-8 space-y-6">
             <p className="text-base md:text-lg text-foreground/90 leading-relaxed text-center">
-              This application utilizes Google Gemini's advanced AI capabilities to analyze fashion designs based on images and contextual details. It predicts future market trends and provides an estimated sales forecast, offering valuable insights to designers.
+              This application utilizes Google Gemini's advanced AI capabilities to analyze fashion designs based on images and contextual details. It predicts future market trends, provides an estimated sales forecast, and offers actionable insights to designers and fashion professionals.
             </p>
 
+            {/* Supervisor and Developer Information */}
             <div className="space-y-4 pt-4">
                  <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-secondary/30 dark:bg-secondary/20 rounded-lg border border-border/30 hover:shadow-md transition-shadow">
                     <div className="text-center sm:text-left">
@@ -106,6 +121,7 @@ export default function AboutPage() {
                 </div>
             </div>
 
+            {/* Call to Action */}
              <div className="text-center pt-6">
                  <Link href="/predict" passHref>
                      <Button variant="default" className="bg-gradient-to-r from-primary to-accent/90 text-primary-foreground shadow-md hover:shadow-lg">
@@ -118,6 +134,7 @@ export default function AboutPage() {
         </Card>
       </main>
 
+       {/* Footer Section */}
        <footer className="text-center p-4 text-xs sm:text-sm text-muted-foreground border-t border-border/20">
            © {new Date().getFullYear()} FashionFlow AI.
            <Link href="/" className="ml-2 underline hover:text-primary">Home</Link>

@@ -1,100 +1,116 @@
+
+/**
+ * @fileOverview Global CSS styles and Tailwind CSS custom theme configuration.
+ * This file sets up the base Tailwind layers, defines CSS custom properties (variables)
+ * for light and dark themes, and includes custom component styles and utility classes.
+ */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; /* Updated font stack */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; /* Updated font stack for modern look */
 }
 
 @layer base {
+  /* Light theme CSS custom properties */
   :root {
     --background: 210 60% 98%; /* Slightly cooler light background */
-    --foreground: 224 71.4% 4.1%; /* Dark Blue-Gray */
-    --card: 0 0% 100%; /* White */
-    --card-foreground: 224 71.4% 4.1%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 221.2 83.2% 53.3%; /* Brighter Blue */
-    --primary-foreground: 0 0% 100%; /* White */
-    --secondary: 215 50% 96.5%; /* Slightly bluer light secondary */
-    --secondary-foreground: 224 71.4% 4.1%; /* Dark Blue-Gray */
-    --muted: 215 40% 93.1%; /* Cooler muted */
-    --muted-foreground: 215 20.2% 55.1%; /* Adjusted Muted Gray-Blue */
-    --accent: 346.8 77.2% 49.8%; /* Vibrant Pink/Magenta */
-    --accent-foreground: 0 0% 100%; /* White */
-    --destructive: 0 84.2% 60.2%; /* Red */
-    --destructive-foreground: 0 0% 100%; /* White */
-    --border: 214.3 31.8% 88.4%; /* Slightly darker light border */
-    --input: 214.3 31.8% 91.4%; /* Keep input light */
+    --foreground: 224 71.4% 4.1%; /* Dark Blue-Gray text */
+    --card: 0 0% 100%; /* White card background */
+    --card-foreground: 224 71.4% 4.1%; /* Dark Blue-Gray card text */
+    --popover: 0 0% 100%; /* White popover background */
+    --popover-foreground: 224 71.4% 4.1%; /* Dark Blue-Gray popover text */
+    --primary: 221.2 83.2% 53.3%; /* Brighter Blue for primary actions */
+    --primary-foreground: 0 0% 100%; /* White text on primary elements */
+    --secondary: 215 50% 96.5%; /* Slightly bluer light secondary background */
+    --secondary-foreground: 224 71.4% 4.1%; /* Dark Blue-Gray text on secondary elements */
+    --muted: 215 40% 93.1%; /* Cooler muted background */
+    --muted-foreground: 215 20.2% 55.1%; /* Adjusted Muted Gray-Blue text */
+    --accent: 346.8 77.2% 49.8%; /* Vibrant Pink/Magenta for accents */
+    --accent-foreground: 0 0% 100%; /* White text on accent elements */
+    --destructive: 0 84.2% 60.2%; /* Red for destructive actions */
+    --destructive-foreground: 0 0% 100%; /* White text on destructive elements */
+    --border: 214.3 31.8% 88.4%; /* Slightly darker light border color */
+    --input: 214.3 31.8% 91.4%; /* Light input background */
     --ring: 221.2 83.2% 53.3%; /* Brighter Blue for focus rings */
-    --radius: 0.75rem; /* Slightly larger radius */
-    /* Sidebar vars remain the same for now */
-    --sidebar-background: 222.2 47.4% 11.2%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 221.2 83.2% 53.3%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 346.8 77.2% 49.8%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 221.2 83.2% 53.3%;
+    --radius: 0.75rem; /* Slightly larger border radius for components */
+
+    /* Sidebar specific variables for light theme */
+    --sidebar-background: 222.2 47.4% 11.2%; /* Dark blue sidebar background */
+    --sidebar-foreground: 210 40% 98%; /* Light gray sidebar text */
+    --sidebar-primary: 221.2 83.2% 53.3%; /* Primary color for sidebar active items */
+    --sidebar-primary-foreground: 0 0% 100%; /* Text color for primary sidebar items */
+    --sidebar-accent: 346.8 77.2% 49.8%; /* Accent color for sidebar items */
+    --sidebar-accent-foreground: 0 0% 100%; /* Text color for accent sidebar items */
+    --sidebar-border: 217.2 32.6% 17.5%; /* Border color within the sidebar */
+    --sidebar-ring: 221.2 83.2% 53.3%; /* Focus ring color for sidebar elements */
+
+    /* Chart color palette for light theme */
     --chart-1: 221.2 83.2% 53.3%; /* Primary Blue */
     --chart-2: 346.8 77.2% 49.8%; /* Accent Pink/Magenta */
     --chart-3: 160 60% 45%;       /* Teal/Green */
     --chart-4: 40 90% 60%;        /* Orange */
     --chart-5: 270 70% 65%;       /* Purple */
   }
+
+  /* Dark theme CSS custom properties */
   .dark {
-    --background: 222.2 84% 4.9%; /* Very Dark Blue */
-    --foreground: 210 40% 98%; /* Light Gray */
-    --card: 224 71.4% 6.1%; /* Slightly lighter dark card */
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%; /* Keep Vibrant Blue */
-    --primary-foreground: 0 0% 100%; /* White */
-    --secondary: 217.2 32.6% 13.5%; /* Darker Muted Blue for secondary */
-    --secondary-foreground: 210 40% 98%; /* Light Gray */
-    --muted: 217.2 32.6% 9.5%; /* Even darker muted */
-    --muted-foreground: 215 20.2% 65.1%; /* Muted Gray-Blue */
-    --accent: 346.8 77.2% 59.8%; /* Slightly brighter pink/magenta for dark */
-    --accent-foreground: 0 0% 100%; /* White */
-    --destructive: 0 62.8% 40.6%; /* Darker Red */
-    --destructive-foreground: 0 0% 100%; /* White */
-    --border: 217.2 32.6% 15.5%; /* Darker Muted Blue for border */
-    --input: 217.2 32.6% 17.5%; /* Keep input slightly lighter than border */
-    --ring: 217.2 91.2% 59.8%; /* Vibrant Blue for focus rings */
+    --background: 222.2 84% 4.9%; /* Very Dark Blue background */
+    --foreground: 210 40% 98%; /* Light Gray text */
+    --card: 224 71.4% 6.1%; /* Slightly lighter dark card background */
+    --card-foreground: 210 40% 98%; /* Light Gray card text */
+    --popover: 222.2 84% 4.9%; /* Dark popover background */
+    --popover-foreground: 210 40% 98%; /* Light Gray popover text */
+    --primary: 217.2 91.2% 59.8%; /* Vibrant Blue for primary actions in dark mode */
+    --primary-foreground: 0 0% 100%; /* White text on primary elements */
+    --secondary: 217.2 32.6% 13.5%; /* Darker Muted Blue for secondary background */
+    --secondary-foreground: 210 40% 98%; /* Light Gray text on secondary elements */
+    --muted: 217.2 32.6% 9.5%; /* Even darker muted background */
+    --muted-foreground: 215 20.2% 65.1%; /* Muted Gray-Blue text */
+    --accent: 346.8 77.2% 59.8%; /* Slightly brighter pink/magenta for accents in dark mode */
+    --accent-foreground: 0 0% 100%; /* White text on accent elements */
+    --destructive: 0 62.8% 40.6%; /* Darker Red for destructive actions */
+    --destructive-foreground: 0 0% 100%; /* White text on destructive elements */
+    --border: 217.2 32.6% 15.5%; /* Darker Muted Blue for border color */
+    --input: 217.2 32.6% 17.5%; /* Dark input background, slightly lighter than border */
+    --ring: 217.2 91.2% 59.8%; /* Vibrant Blue for focus rings in dark mode */
+
+    /* Sidebar specific variables for dark theme */
+    --sidebar-background: 224 71.4% 4.1%; /* Even darker sidebar background */
+    --sidebar-foreground: 210 40% 98%; /* Light gray sidebar text */
+    --sidebar-primary: 217.2 91.2% 59.8%; /* Primary color for sidebar active items */
+    --sidebar-primary-foreground: 0 0% 100%; /* Text color for primary sidebar items */
+    --sidebar-accent: 346.8 77.2% 59.8%; /* Accent color for sidebar items */
+    --sidebar-accent-foreground: 0 0% 100%; /* Text color for accent sidebar items */
+    --sidebar-border: 217.2 32.6% 12.5%; /* Slightly darker sidebar border */
+    --sidebar-ring: 217.2 91.2% 59.8%; /* Focus ring color for sidebar elements */
+
+    /* Chart color palette for dark theme */
     --chart-1: 217.2 91.2% 59.8%; /* Primary Blue */
     --chart-2: 346.8 77.2% 59.8%; /* Accent Pink/Magenta */
     --chart-3: 160 50% 55%;       /* Teal/Green */
     --chart-4: 40 80% 65%;        /* Orange */
     --chart-5: 270 65% 70%;       /* Purple */
-    /* Sidebar dark vars */
-    --sidebar-background: 224 71.4% 4.1%; /* Darker sidebar */
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217.2 91.2% 59.8%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 346.8 77.2% 59.8%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 217.2 32.6% 12.5%; /* Slightly darker sidebar border */
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
 @layer base {
+  /* Global styles and resets */
   * {
-    @apply border-border transition-colors duration-200 ease-in-out; /* Smooth color transitions globally */
+    @apply border-border transition-colors duration-200 ease-in-out; /* Smooth color transitions for all elements */
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground; /* Apply base background and text colors */
     /* Enhanced gradient background with smoother transition and slight movement */
     @apply bg-gradient-to-br from-background via-secondary/20 to-background dark:from-background dark:via-secondary/10 dark:to-background;
-    /* background-size: 200% 200%; */
-    /* animation: subtle-gradient 15s ease infinite; */
-    -webkit-font-smoothing: antialiased; /* Smoother fonts on WebKit */
+    /* background-size: 200% 200%; */ /* Could be used with animation for a moving gradient */
+    /* animation: subtle-gradient 15s ease infinite; */ /* Example animation for moving gradient */
+    -webkit-font-smoothing: antialiased; /* Smoother fonts on WebKit browsers */
     -moz-osx-font-smoothing: grayscale; /* Smoother fonts on Firefox */
   }
 
-  /* Subtle background gradient animation */
+  /* Subtle background gradient animation (optional) */
   @keyframes subtle-gradient {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -102,10 +118,10 @@ body {
   }
 }
 
-/* Component enhancements */
+/* Custom component enhancements */
 @layer components {
   .button, input, textarea, select, .card, [role="button"], [role="link"] {
-    @apply transition-all duration-200 ease-in-out;
+    @apply transition-all duration-200 ease-in-out; /* Global transition for interactive elements */
   }
    .card {
      /* Soft shadow, slightly more prominent */
@@ -114,29 +130,31 @@ body {
      @apply border border-border/40 hover:border-primary/50 dark:hover:border-primary/60;
      /* Gentle scale and shadow transition on hover */
      @apply hover:scale-[1.01] hover:shadow-xl dark:hover:shadow-primary/15;
-     @apply bg-card/95 backdrop-blur-sm; /* Add slight transparency and blur */
+     @apply bg-card/95 backdrop-blur-sm; /* Add slight transparency and blur to cards for a modern effect */
   }
    .button {
-       @apply transform active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background; /* Consistent focus */
-       @apply shadow hover:shadow-md active:shadow-sm; /* Add subtle shadow */
+       /* Consistent focus styling and interactive feedback for buttons */
+       @apply transform active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+       @apply shadow hover:shadow-md active:shadow-sm; /* Add subtle shadow effects to buttons */
    }
    /* Input and Textarea styling */
   input, textarea {
-    @apply focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background focus:border-primary/70; /* Highlight focus */
-    @apply bg-background/80 dark:bg-card/70; /* Slightly transparent background */
+    /* Highlight focus for inputs and textareas */
+    @apply focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background focus:border-primary/70;
+    @apply bg-background/80 dark:bg-card/70; /* Slightly transparent background for inputs */
   }
-  /* Add gradient to primary button */
+  /* Add gradient to primary button for enhanced visual appeal */
   .button.bg-primary {
      @apply bg-gradient-to-r from-primary to-accent/90 text-primary-foreground;
-     @apply hover:from-primary/90 hover:to-accent/80;
-     @apply shadow-md hover:shadow-lg;
+     @apply hover:from-primary/90 hover:to-accent/80; /* Gradient change on hover */
+     @apply shadow-md hover:shadow-lg; /* Enhanced shadow on hover */
   }
 
 }
 
-/* Custom scrollbar styling */
+/* Custom scrollbar styling for a more modern look */
 ::-webkit-scrollbar {
-  width: 8px; /* Slightly thicker */
+  width: 8px; /* Slightly thicker scrollbar */
   height: 8px;
 }
 
@@ -148,21 +166,21 @@ body {
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--muted-foreground) / 0.6); /* Muted thumb, slightly more opaque */
   border-radius: 10px;
-  border: 2px solid transparent; /* Add border space */
+  border: 2px solid transparent; /* Add border space for a floating effect */
   background-clip: content-box; /* Clip background to content area */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.8);
+  background: hsl(var(--muted-foreground) / 0.8); /* Darken thumb on hover */
 }
 
 
-/* Add a subtle animation for gradient text */
+/* Add a subtle animation for gradient text elements */
 @keyframes gradient-x {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
 }
 .animate-gradient-x {
-  background-size: 200% 200%;
-  animation: gradient-x 5s ease infinite;
+  background-size: 200% 200%; /* Allows gradient to move */
+  animation: gradient-x 5s ease infinite; /* Smooth, infinite animation loop */
 }
