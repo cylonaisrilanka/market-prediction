@@ -1,3 +1,12 @@
+/**
+ * @fileOverview Accordion UI component.
+ * This file exports accessible accordion components built using Radix UI primitives
+ * and styled with Tailwind CSS. It includes Accordion, AccordionItem, AccordionTrigger,
+ * and AccordionContent.
+ *
+ * @see https://www.radix-ui.com/primitives/docs/components/accordion - Radix UI Accordion documentation.
+ * @see https://ui.shadcn.com/docs/components/accordion - ShadCN UI Accordion documentation.
+ */
 "use client"
 
 import * as React from "react"
@@ -6,20 +15,37 @@ import { ChevronDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * The root component for an accordion, wrapping multiple accordion items.
+ * Based on `AccordionPrimitive.Root`.
+ */
 const Accordion = AccordionPrimitive.Root
 
+/**
+ * An individual item within an accordion. Each item has a trigger and content.
+ * Based on `AccordionPrimitive.Item`.
+ * @param {React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>} props - Props for the AccordionItem.
+ * @param {React.Ref<React.ElementRef<typeof AccordionPrimitive.Item>>} ref - React ref.
+ */
 const AccordionItem = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
 >(({ className, ...props }, ref) => (
   <AccordionPrimitive.Item
     ref={ref}
-    className={cn("border-b", className)}
+    className={cn("border-b", className)} // Default styling includes a bottom border.
     {...props}
   />
 ))
 AccordionItem.displayName = "AccordionItem"
 
+/**
+ * The button that toggles the display of an accordion item's content.
+ * Includes a chevron icon that rotates based on the open/closed state.
+ * Based on `AccordionPrimitive.Trigger`.
+ * @param {React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>} props - Props for the AccordionTrigger.
+ * @param {React.Ref<React.ElementRef<typeof AccordionPrimitive.Trigger>>} ref - React ref.
+ */
 const AccordionTrigger = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
@@ -40,6 +66,13 @@ const AccordionTrigger = React.forwardRef<
 ))
 AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName
 
+/**
+ * The collapsible content area for an accordion item.
+ * Animates open and closed using `accordion-down` and `accordion-up` animations.
+ * Based on `AccordionPrimitive.Content`.
+ * @param {React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>} props - Props for the AccordionContent.
+ * @param {React.Ref<React.ElementRef<typeof AccordionPrimitive.Content>>} ref - React ref.
+ */
 const AccordionContent = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>

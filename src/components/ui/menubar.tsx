@@ -1,41 +1,70 @@
+/**
+ * @fileOverview Menubar UI component.
+ * This file exports accessible menubar components built using Radix UI primitives
+ * and styled with Tailwind CSS. It provides a traditional desktop-style menu bar
+ * structure with menus, submenus, items, checkboxes, and radio groups.
+ *
+ * @see https://www.radix-ui.com/primitives/docs/components/menubar - Radix UI Menubar documentation.
+ * @see https://ui.shadcn.com/docs/components/menubar - ShadCN UI Menubar documentation.
+ */
 "use client"
 
 import * as React from "react"
-import * as MenubarPrimitive from "@radix-ui/react-menubar"
-import { Check, ChevronRight, Circle } from "lucide-react"
+import * as MenubarPrimitive from "@radix-ui/react-menubar" // Radix UI's accessible menubar primitives.
+import { Check, ChevronRight, Circle } from "lucide-react" // Icons for menu items.
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils" // Utility for conditional class name joining.
 
+/**
+ * A menu within the menubar.
+ */
 function MenubarMenu({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Menu>) {
   return <MenubarPrimitive.Menu {...props} />
 }
 
+/**
+ * A group of items within a menu.
+ */
 function MenubarGroup({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Group>) {
   return <MenubarPrimitive.Group {...props} />
 }
 
+/**
+ * A portal for rendering menu content.
+ */
 function MenubarPortal({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Portal>) {
   return <MenubarPrimitive.Portal {...props} />
 }
 
+/**
+ * A group of radio items within a menu.
+ */
 function MenubarRadioGroup({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.RadioGroup>) {
   return <MenubarPrimitive.RadioGroup {...props} />
 }
 
+/**
+ * A submenu within a menu.
+ */
 function MenubarSub({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Sub>) {
   return <MenubarPrimitive.Sub data-slot="menubar-sub" {...props} />
 }
 
+/**
+ * The root menubar component.
+ * @param {React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Root>} props - Props for Menubar.
+ * @param {React.Ref<React.ElementRef<typeof MenubarPrimitive.Root>>} ref - React ref.
+ */
 const Menubar = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Root>
@@ -43,7 +72,7 @@ const Menubar = React.forwardRef<
   <MenubarPrimitive.Root
     ref={ref}
     className={cn(
-      "flex h-10 items-center space-x-1 rounded-md border bg-background p-1",
+      "flex h-10 items-center space-x-1 rounded-md border bg-background p-1", // Default menubar styling.
       className
     )}
     {...props}
@@ -51,6 +80,11 @@ const Menubar = React.forwardRef<
 ))
 Menubar.displayName = MenubarPrimitive.Root.displayName
 
+/**
+ * The trigger for a top-level menu in the menubar.
+ * @param {React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Trigger>} props - Props for MenubarTrigger.
+ * @param {React.Ref<React.ElementRef<typeof MenubarPrimitive.Trigger>>} ref - React ref.
+ */
 const MenubarTrigger = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Trigger>
@@ -66,6 +100,12 @@ const MenubarTrigger = React.forwardRef<
 ))
 MenubarTrigger.displayName = MenubarPrimitive.Trigger.displayName
 
+/**
+ * The trigger for a submenu. Includes a chevron icon.
+ * @param {React.ComponentPropsWithoutRef<typeof MenubarPrimitive.SubTrigger> & { inset?: boolean }} props
+ *   - `inset`: If true, adds padding for alignment.
+ * @param {React.Ref<React.ElementRef<typeof MenubarPrimitive.SubTrigger>>} ref - React ref.
+ */
 const MenubarSubTrigger = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.SubTrigger>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.SubTrigger> & {
@@ -87,6 +127,11 @@ const MenubarSubTrigger = React.forwardRef<
 ))
 MenubarSubTrigger.displayName = MenubarPrimitive.SubTrigger.displayName
 
+/**
+ * The content container for a submenu.
+ * @param {React.ComponentPropsWithoutRef<typeof MenubarPrimitive.SubContent>} props - Props for MenubarSubContent.
+ * @param {React.Ref<React.ElementRef<typeof MenubarPrimitive.SubContent>>} ref - React ref.
+ */
 const MenubarSubContent = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.SubContent>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.SubContent>
@@ -102,6 +147,11 @@ const MenubarSubContent = React.forwardRef<
 ))
 MenubarSubContent.displayName = MenubarPrimitive.SubContent.displayName
 
+/**
+ * The main content container for a top-level menu.
+ * @param {React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Content>} props - Props for MenubarContent.
+ * @param {React.Ref<React.ElementRef<typeof MenubarPrimitive.Content>>} ref - React ref.
+ */
 const MenubarContent = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Content>
@@ -127,6 +177,12 @@ const MenubarContent = React.forwardRef<
 )
 MenubarContent.displayName = MenubarPrimitive.Content.displayName
 
+/**
+ * An individual item within a menu or submenu.
+ * @param {React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Item> & { inset?: boolean }} props
+ *   - `inset`: If true, adds padding for alignment.
+ * @param {React.Ref<React.ElementRef<typeof MenubarPrimitive.Item>>} ref - React ref.
+ */
 const MenubarItem = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Item> & {
@@ -145,6 +201,11 @@ const MenubarItem = React.forwardRef<
 ))
 MenubarItem.displayName = MenubarPrimitive.Item.displayName
 
+/**
+ * A checkable item within a menu. Displays a check mark when selected.
+ * @param {React.ComponentPropsWithoutRef<typeof MenubarPrimitive.CheckboxItem>} props - Props for MenubarCheckboxItem.
+ * @param {React.Ref<React.ElementRef<typeof MenubarPrimitive.CheckboxItem>>} ref - React ref.
+ */
 const MenubarCheckboxItem = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.CheckboxItem>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.CheckboxItem>
@@ -168,6 +229,11 @@ const MenubarCheckboxItem = React.forwardRef<
 ))
 MenubarCheckboxItem.displayName = MenubarPrimitive.CheckboxItem.displayName
 
+/**
+ * A radio item within a menu (part of a radio group). Displays a circle indicator when selected.
+ * @param {React.ComponentPropsWithoutRef<typeof MenubarPrimitive.RadioItem>} props - Props for MenubarRadioItem.
+ * @param {React.Ref<React.ElementRef<typeof MenubarPrimitive.RadioItem>>} ref - React ref.
+ */
 const MenubarRadioItem = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.RadioItem>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.RadioItem>
@@ -190,6 +256,12 @@ const MenubarRadioItem = React.forwardRef<
 ))
 MenubarRadioItem.displayName = MenubarPrimitive.RadioItem.displayName
 
+/**
+ * A label for a group of items or a section within a menu.
+ * @param {React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Label> & { inset?: boolean }} props
+ *   - `inset`: If true, adds padding for alignment.
+ * @param {React.Ref<React.ElementRef<typeof MenubarPrimitive.Label>>} ref - React ref.
+ */
 const MenubarLabel = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.Label>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Label> & {
@@ -208,6 +280,11 @@ const MenubarLabel = React.forwardRef<
 ))
 MenubarLabel.displayName = MenubarPrimitive.Label.displayName
 
+/**
+ * A visual separator between groups of items in a menu.
+ * @param {React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Separator>} props - Props for MenubarSeparator.
+ * @param {React.Ref<React.ElementRef<typeof MenubarPrimitive.Separator>>} ref - React ref.
+ */
 const MenubarSeparator = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Separator>
@@ -220,6 +297,10 @@ const MenubarSeparator = React.forwardRef<
 ))
 MenubarSeparator.displayName = MenubarPrimitive.Separator.displayName
 
+/**
+ * A component to display a keyboard shortcut hint next to a menu item.
+ * @param {React.HTMLAttributes<HTMLSpanElement>} props - Standard HTML span attributes.
+ */
 const MenubarShortcut = ({
   className,
   ...props
